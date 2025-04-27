@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <title>uBitxWebServer</title>
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="Content-Type" content="text/html;" />
+  <style type="text/css">
+    a:link { text-decoration: none; }
+    table.m {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 11pt;
+      border-collapse: collapse;
+    }
+    table.m th {
+      border-width: 2px;
+      padding: 8px;
+      border-style: solid;
+      border-color: #666666;
+      background-color: #FDFF9A;
+    }
+    table.m td {
+      border-width: 2px;
+      padding: 8px;
+      border-style: solid;
+      border-color: #666666;
+      background-color: #dedede;
+    }
+    table.n {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 11pt;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    table.n th, table.n td {
+      border-style: solid;
+      border-color: #666666;
+      border-width: 2px;
+      padding: 4px;
+      background-color: #DEDEDE;
+    }
+  </style>
+</head>
+<body>
+  <table class="m">
+    <tr>
+      <td><a href="p">Panel</a></td>
+      <th>Configuración</th>
+      <td><a href="es">Sistema</a></td>
+    </tr>
+  </table>
+
+  <table class="m">
+    <tr>
+      <th>Dispositivo</th>
+      <td><a href="sb">Bandas</a></td>
+      <td><a href="sm">Memorias</a></td>
+      <td><a href="cw">CW</a></td>
+      <td><a href="sme">S-meter</a></td>
+      <td><a href="sne">Red</a></td>
+      <td><a href="sns">Serv. Red</a></td>
+      <td><a href="sio">Sondas temp.</a></td>
+    </tr>
+  </table>
+
+  <br />
+
+  <form action="sd" method="post">
+    <table class="n">
+      <tr>
+        <td>Indicativo</td>
+        <td><input type="text" name="0" value="%CALLSIGN%" maxlength="18" size="18" /></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Calibración / usbCarrier</td>
+        <td><input type="text" name="1" value="%CALIB%" maxlength="9" size="9" /></td>
+        <td><input type="text" name="2" value="%USBcarrier%" maxlength="9" size="9" /></td>
+      </tr>
+      <tr>
+        <td><a href="http://www.google.es/maps" target="_blank">Latitud/ Longitud</a></td>
+        <td><input type="text" name="3" value="%LAT%" maxlength="10" size="10" /></td>
+        <td><input type="text" name="4" value="%LON%" maxlength="10" size="10" /></td>
+      </tr>
+      <tr>
+        <td>Idioma / Zona horaria</td>
+        <td>
+          <select name="5">
+            <option value="0" %LANG0%>Español</option>
+            <option value="1" %LANG1%>English</option>
+            <option value="2" %LANG2%>Deustche</option>
+          </select>
+        </td>
+        <td>
+          UTC
+          <select name="24">
+            %UTCOPTIONS%
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>S-medidor / ROEmedidor</td>
+        <td><input type="checkbox" name="20" value="1" %SMETER% /></td>
+        <td><input type="checkbox" name="21" value="1" %ROE% /></td>
+      </tr>
+      <tr>
+        <td>DS18B20 / ATU ZM-2</td>
+        <td><input type="checkbox" name="22" value="1" %DS18% /></td>
+        <td><input type="checkbox" name="23" value="1" %ATU% /></td>
+      </tr>
+      <tr>
+        <td>ATU time(s) / Iterat. ADC</td>
+        <td><input type="text" name="12" value="%ATUT%" maxlength="5" size="5" /></td>
+        <td><input type="text" name="17" value="%ADC%" maxlength="5" size="5" /></td>
+      </tr>
+      <tr>
+        <td>ATU Factor/ Offset</td>
+        <td><input type="text" name="13" value="%ATUF%" maxlength="10" size="10" /></td>
+        <td><input type="text" name="14" value="%ATUO%" maxlength="10" size="10" /></td>
+      </tr>
+      <tr>
+        <td>Si5351_Addr</td>
+        <td><input type="text" name="9" value="%ADDR%" maxlength="5" size="5" /></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Scan Rango / TX Rango</td>
+        <td>
+          <select name="10">
+            <option value="0" %SCAN0%>Ham bands</option>
+            <option value="1" %SCAN1%>All range</option>
+          </select>
+        </td>
+        <td>
+          <select name="11">
+            <option value="0" %TX0%>Ham bands</option>
+            <option value="1" %TX1%>All range</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>Scan modo / Resume Retardo</td>
+        <td>
+          <select name="18">
+            <option value="0" %MODE0%>No Stop</option>
+            <option value="1" %MODE1%>Stop-resume</option>
+            <option value="2" %MODE2%>Stop</option>
+          </select>
+        </td>
+        <td><input type="text" name="19" value="%DELAY%" maxlength="5" size="5" /></td>
+      </tr>
+      <tr>
+        <td>Temp. Alarma °C / OFF TX °C</td>
+        <td><input type="text" name="15" value="%TALARM%" maxlength="5" size="5" /></td>
+        <td><input type="text" name="16" value="%TOFFTX%" maxlength="5" size="5" /></td>
+      </tr>
+      <tr>
+        <td>Reset periódico (h)</td>
+        <td>
+          <select name="99">
+            %RESETHOURS%
+          </select>
+        </td>
+        <td></td>
+      </tr>
+    </table>
+    <input type="submit" value="Guardar" />
+  </form>
+</body>
+</html>

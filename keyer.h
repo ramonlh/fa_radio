@@ -1,3 +1,6 @@
+
+#pragma once
+
 /**
  CW Keyer
  CW Key logic change with ron's code (ubitx_keyer.cpp)
@@ -35,7 +38,11 @@
 //we store the last padde's character 
 //to alternatively send dots and dashes 
 //when both are simultaneously pressed
+#define AUTO_CW_RESERVE_MAX 3
+uint8_t autoCWSendReserv[AUTO_CW_RESERVE_MAX]; //Reserve CW Auto Send
+uint8_t sendingCWTextIndex = 0;                //cw auto seding Text Index
 char lastPaddle = 0;
+uint8_t autoCWSendReservCount = 0;             //Reserve CW Text Cound
 
 //reads the analog keyer pin and reports the paddle
 byte getPaddle(){
@@ -271,7 +278,6 @@ byte delay_background(unsigned delayTime, byte fromType, byte swr)
       {
       if (millis()-lastswr>swrper)
         {
-        SWR=readSWR(1);
         displaySWR(0);
         }
       }
@@ -284,7 +290,6 @@ byte delay_background(unsigned delayTime, byte fromType, byte swr)
       {
       if ((((millis()-delayBeforeTime) % 100)>=95) && (((millis()-delayBeforeTime) % 100)<=105))
         {
-        SWR=readSWR(1);
         displaySWR(0);
         }
       }

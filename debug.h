@@ -49,7 +49,8 @@ void showSettings()
     s2(":");s2(conf.hamBandName[i]);
     s2(":");s2(conf.hamBandRange[i][0]);
     s2("-"); s2(conf.hamBandRange[i][1]);
-  } s2(crlf);
+    } 
+  s2(crlf);
   s2("ifShiftValue:"); s2(conf.ifShiftValue);s2(crlf);
   s2("sMeterLevels (0-15):");
   for (byte i=0;i<16;i++) { s2(":"); s2(conf.sMeterLevels[i]); } s2(crlf);

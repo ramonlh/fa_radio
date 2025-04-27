@@ -1,6 +1,9 @@
 
 #pragma once
 
+// wifi_f.h
+void resetWiFi(void);
+
 typedef struct {    // datos configuración
   uint8_t LIBRE0;
   int32_t calibration;
@@ -153,7 +156,6 @@ typedef struct {    // datos configuración
   conftype conf;
   uint8_t *buffconf = (uint8_t *) &conf; // acceder a conf2 como bytes
 
-
 void initConf()
 {
   conf.LIBRE0=0;  
@@ -235,22 +237,22 @@ void initConf()
   conf.ATUIter=1;
   conf.posATUC1=0;
   conf.posATUC2=0;
-  conf.sMeterLevels[0]=1;
-  conf.sMeterLevels[1]=2;
-  conf.sMeterLevels[2]=3;
-  conf.sMeterLevels[3]=4;
-  conf.sMeterLevels[4]=5;
-  conf.sMeterLevels[5]=6;
-  conf.sMeterLevels[6]=7;
-  conf.sMeterLevels[7]=8;
-  conf.sMeterLevels[8]=9;
-  conf.sMeterLevels[9]=10;
-  conf.sMeterLevels[10]=11;
-  conf.sMeterLevels[11]=12;
-  conf.sMeterLevels[12]=13;
-  conf.sMeterLevels[13]=14;
-  conf.sMeterLevels[14]=15;
-  conf.sMeterLevels[15]=10000;
+  conf.sMeterLevels[0]=0;
+  conf.sMeterLevels[1]=1000;
+  conf.sMeterLevels[2]=2000;
+  conf.sMeterLevels[3]=3000;
+  conf.sMeterLevels[4]=4000;
+  conf.sMeterLevels[5]=5000;
+  conf.sMeterLevels[6]=6000;
+  conf.sMeterLevels[7]=7000;
+  conf.sMeterLevels[8]=8000;
+  conf.sMeterLevels[9]=9000;
+  conf.sMeterLevels[10]=10000;
+  conf.sMeterLevels[11]=11000;
+  conf.sMeterLevels[12]=12000;
+  conf.sMeterLevels[13]=13000;
+  conf.sMeterLevels[14]=14000;
+  conf.sMeterLevels[15]=15000;
   memset(conf.LIBRE3,0,sizeof(conf.LIBRE3));
   conf.userCallsignLength=0;    //7 : display callsign at system startup, 6~0 : callsign length (range : 1~18)
   strcpy(conf.CallSign,"EA4GZI");
@@ -372,26 +374,9 @@ void initConf()
   conf.connMode=0;
 }
 
-void saveconfEEPROM()
-{
-  for (int i=0;i<sizeof(conf);i++) { EEPROM.write(i,buffconf[i]); }
-  EEPROM.commit();
-}
-
-int readconfEEPROM()
-{
-  int mysize=sizeof(conf);
-  for (int i=0;i<mysize;i++) { buffconf[i]=EEPROM.read(i); }
-  s2("readconfEEPROM:"); s2(mysize);
-  return(mysize);
-}
-
 void saveconf()
 {
-  saveconfEEPROM();
 
-  return; //?????????????????????????????????
-  
   fs::File auxfile=SPIFFS.open(fileconf, "w+");
   if (auxfile) 
     { 
@@ -405,32 +390,38 @@ void saveconf()
   else { s2("ERROR OPENNING FILE CONF\n"); }
 }
 
-int readconf()
-{
-  int count=0;
-  fs::File auxfile=SPIFFS.open(fileconf,"r");
-  if (auxfile)
-    {
-    for (count=0;count<sizeof(conf);count++) *(buffconf+count)=auxfile.read();
-    auxfile.close();
-    if ((count!=sizeof(conf)) || (strcmp(conf.watermark,watermarkref)!=0))    // se han leído distinto número de bytes que el tamaño de Conf
-      { 
-      initConf();
-      strcpy(conf.watermark,watermarkref);
-      saveconf(); 
-      }
-    s2("Config file size:");  s2(sizeof(conf)); s2(" read:"); s2(count);
-    s2(count==sizeof(conf)?" OK":" ERROR"); s2(crlf);
-    s2("Watermark:"); s2(conf.watermark); s2(crlf);
-  
-    // para nuevas variables
-    if (conf.addrADS1115A!=0x48) conf.addrADS1115A=0x48; 
-    if (conf.addrADS1115B!=0x49) conf.addrADS1115A=0x49; 
-    }
-  else 
-    {
-    s2("ERROR OPENNING FILE "); s2(fileconf); s2(crlf);
-    
-    }
-  return count;
+int readconf() {
+  // Verificar si el archivo existe antes de abrirlo
+  if (!SPIFFS.exists("/ubitx.cnf")) {
+    s2("El archivo /ubitx.cnf no existe\n");
+    return 2;  // O crear el archivo si es necesario
+  }
+
+  // Intentar abrir el archivo para lectura
+  fs::File auxfile = SPIFFS.open("/ubitx.cnf", "r");
+  if (!auxfile) {
+    s2("ERROR OPENNING FILE /ubitx.cnf\n");
+    return 3;  // Error al abrir el archivo
+  }
+
+  // Leer los datos del archivo
+  int bytesread = auxfile.read(buffconf, sizeof(conf));
+  Serial2.print("size conf:"); Serial2.print(sizeof(conf));
+  Serial2.print(" leidos:"); Serial2.println(bytesread);
+  if (bytesread != sizeof(conf)) {
+    s2("ERROR LOADING FILE CONF bytes read: ");
+    s2(bytesread);
+    s2("\n");
+  }
+  auxfile.close();  // No olvidar cerrar el archivo
+  return 0;
 }
+
+void initFab(void)
+{
+  s2(F("Reiniciando de fábrica...\n"));
+  initConf();                  // variables de estructura Conf
+  resetWiFi();                 // WiFi y Red
+  saveconf();
+}
+

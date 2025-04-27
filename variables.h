@@ -37,10 +37,12 @@ String msg;                     // String donde se construye la respuesta HTML q
 
 float vtotvalue=0.0;    
 float itotvalue=0.0; 
+
 // smeter
 int maxsmeter=0;
 int minsmeter=29999;
 int16_t smetervalue=0;
+int16_t powervalue=0;
 boolean calSmeterReq=false;
 
 char auxchar[130];              // 130 bytes, auxiliar 
@@ -81,6 +83,7 @@ byte isTxType = 0;    //000000[0 - isSplit] [0 - isTXStop]
 unsigned long lastswr=0;
 unsigned long swrper=10; 
 boolean firstmem=false;
+int16_t cwcodevalue=0;
 
 // space for save freq actual
   uint8_t vfoActiveAct;      // VFO 
@@ -93,3 +96,6 @@ boolean firstmem=false;
   uint8_t isUsbsplAct;      // isUSB TX split mode
   uint8_t cwModesplAct;     // CW mode TX split
   unsigned long ftxsplAct;  // frequency TX Split
+
+uint8_t isCWAutoMode = 0;          //0 : none, 1 : CW_AutoMode_Menu_Selection, 2 : CW_AutoMode Sending
+byte keylock=0; // bloqueo teclado y botones

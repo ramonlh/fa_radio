@@ -1,24 +1,33 @@
 
 #pragma once
 
+// tasks
+#define task_ds18b20_size 2048
+#define task_ds18b20_priority 1
+#define task_ds18b20_delay 10000
+
+#define task_ads1115_size 2048
+#define task_ads1115_priority 1
+#define task_ads1115_delay 1000
+
 // extensions
 #define SERIAL1
 #define SERIAL2
 //#define WIFIBLE
-//#define TCPSERVER
+#define TCPSERVER
 #define UDPSERVER
 #define NTPCLIENT
-//#define WEBSOCKETS
+#define WEBSOCKETS
 #define FTPSERVER
-//#define NTPCLIENT
+#define NTPCLIENT
 #define DS18B20   // checked
 #define ADS1X15   // checked
-//#define SERVO
+#define SERVO
 #define WEBSERVER
 //#define REMOTEDEBUG
-//#define ESPCLIENT
-//#define TCPCLIENT
-//#define PUBSUB
+#define ESPCLIENT
+#define TCPCLIENT
+#define PUBSUB
 #define TPA2016
 #define TFT
 
@@ -51,11 +60,11 @@
 // servidores/puertos
 //****************** PORTS **************************
 #define FTPPort    21
-#define TCPPort  8084
-#define UDPPortS 8085
-#define WSPort   81 // 8086
-#define UDPPortF 8087
-#define WEBPort  8088 
+#define TCPPort   8084
+#define UDPPortS  8085
+#define WSPort    8086
+#define UDPPortF  8087
+#define WEBPort   8088 
 #define webportdefault 8088
 
 #define HTTP_CODE_OK 200
@@ -64,8 +73,8 @@
 #define MAX_PAGES      13
 #define MAX_BANDS      10  
 #define maxTemp         8       // número máximo de sondas ds18B20
-#define VFO_A           16
-#define VFO_B           20
+#define VFO_A          16
+#define VFO_B          20
 #define maxMem        100
 #define LOWEST_FREQ_DIAL  (3000l)
 #define HIGHEST_FREQ_DIAL (60000000l)
@@ -93,3 +102,42 @@ long timezoneval[39]={-43200,-39600,-36000,-34200,-32400,-28800,-25200,-21600,-1
                       -14400,-12600,-10800,-7200,-3600,0,3600,7200,10800,12600,14400,
                        16200,18000,19800,20700,21600,23400,25200,28800,31500,32400,34200,
                        36000,37800,39600,43200,45900,46800,50400};                          
+
+//*******************************************************
+//  Commands TCP conection    // NO USAR 10 NI 13 
+#define tcpACK 0
+#define tcpsplitOn 3
+#define tcp_is_USB 4
+#define tcpcwMode 5
+#define tcpritOn 8
+#define tcpvfoActive 19
+#define tcpisusbA 20
+#define tcpisusbB 21
+#define tcpcwmodeA 22
+#define tcpcwmodeB 23
+#define tcpbanddn 40    // band dn
+#define tcpbandup 41    // band up
+#define tcpfreqdn 42    // freq dn
+#define tcpfrequp 43    // freq up
+#define tcpCallSign 44
+#define tcpfrequency 45
+#define tcpfrequencyA 46
+#define tcpfrequencyB 47
+#define tcptemp1 48     // temp 1
+#define tcptemp2 49     // temp 2
+#define tcptemp3 50     // temp 3
+#define tcptunestep 51    // define step
+#define tcpwifi 52        // set WiFi
+#define tcpreset 53       // reset remoto
+#define tcpframe 54       // framemode
+#define tcpminsmeter 55   // valor mínimo smeter
+#define tcpmaxsmeter 56   // valor máximo smeter
+#define tcpscanst 64
+#define tcpkeylock 65
+#define tcpattlevel 66
+#define tcpifShiftVal 67
+#define tcpvtotvalue 68
+#define tcpitotvalue 69
+
+#define tcpMEM 126
+#define tcpALL 127

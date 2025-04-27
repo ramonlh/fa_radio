@@ -33,19 +33,7 @@ void initSettings(){
     saveconf(); // para iniciar fichero 
     showSettings();
     }
-  else
-    {
-    if (!checkfiles()) s2("Some file is missing");s2(crlf);
-    int auxread=readconfEEPROM();
-    s2("Read readconf():"); s2(auxread); s2(crlf);
-    if(readmemo()!=sizeof(memo)) { savememo(); }
-    conf.memMode=0;
-    conf.EEip[3]=149;
-    }
   if (conf.cwKeyType==1) keyerControl &= ~IAMBICB; else if (conf.cwKeyType==2) keyerControl |= IAMBICB;   
-    
-  //CW Key ADC Range ======= adjust set value for reduce cw keying error
-  //by KD8CEC
   
   //Enable / Diable Check for CW Display Cofiguration Group 
   if ((conf.commonOption0 & 0x80) != 0x00)
@@ -109,11 +97,10 @@ void initSettings(){
 }
 
 void initSettingsAux() {
-   conf.attLevel=0;      //
+  conf.attLevel=0;      //
   conf.ifShiftValue=0;   //
   byte auxconnMode=conf.connMode;
   conf.connMode=0;
-  //showSettings();
 }
 
 void initTone()
@@ -158,7 +145,7 @@ void setTXFilters(unsigned long freq){
       }
 }
 
-void setFrequency(unsigned long f){
+void setFrequency(unsigned long f) {
   setTXFilters(f);
   //alternative to reduce the intermod spur
   IF1=conf.firstIF;
@@ -181,19 +168,24 @@ void setFrequency(unsigned long f){
   conf.actualBand=getIndexHambanBbyFreq(f);
   if (conf.actualBand != 99) 
     conf.freqbyband[conf.actualBand][conf.vfoActive==VFO_A?0:1]=f; 
-  if (conf.vfoActive==VFO_A) conf.frequencyA=f; else conf.frequencyB=f;  
-  //sendFreq();
+  if (conf.vfoActive==VFO_A) {
+    conf.frequencyA=f;
+    sendwsData(tcpfrequencyA);
+   } else {
+     conf.frequencyB=f;  
+     sendwsData(tcpfrequencyB);
+   }
   if (scanF==0)
     {
     if (!readingspectrum)
       {
-      //sendFreq();
+      sendwsData(tcpfrequencyA);
       //saveconf();
       }
     }
   else 
     {
-    //sendFreq();
+    sendwsData(tcpfrequencyA);
     }
 }
 
@@ -258,40 +250,6 @@ void doTuningWithThresHold(){
   //displayFreq(1,1,1,1);
 }
 
-void readSmeter( ) 
-{ 
-#ifdef ADS1X15
-  int16_t smeteradc=0;
-  smeteradc=adsA.readADC_SingleEnded(SMETERp);    // es el valor leído del ADC sin convertir
-  calSmeterReq=calSmeterReq || (smeteradc<conf.sMeterLevels[0]) || (smeteradc>conf.sMeterLevels[15]);
-  smeteradc=smeteradc>smeterlast?((smeterlast*7+smeteradc*3))/10:   // valor ajustado para evitar variaciones rápidas
-                                 ((smeterlast*9+smeteradc*1))/10;   // de VK2ETA
-  smeterlast=smeteradc;     // guardar último valor leído
-  if (smeteradc<=minsmeter) { minsmeter=smeteradc; }    // buscar mínimo      
-  if (smeteradc>=maxsmeter) { maxsmeter=smeteradc; }    // buscar máximo    
-
-  // convertir valor a escala 0-90
-  byte i=0; boolean encontrado=false;
-  while ((i<16) && (!encontrado))           // busca intervalo de 0 a 16
-    {
-    if (smeteradc<conf.sMeterLevels[i]) 
-      encontrado=true;
-    else
-      i++;
-    }
-  if (i<15)
-    smetervalue=((i-1)*6) + (smeteradc-conf.sMeterLevels[i])*6 / (conf.sMeterLevels[i]-conf.sMeterLevels[i-1]);
-  else
-    smetervalue=90; 
-
-  if (WiFi.isConnected()) {
-    //Send a packet
-    udpsmeter.beginPacket(udpAddress,conf.udpPortSmeter);
-    udpsmeter.printf("%lu",smetervalue);
-    udpsmeter.endPacket();
-    }
-#endif
-}
 void doScanF()
 {
   if (scanF==1)   // down
@@ -312,43 +270,18 @@ void doScanF()
   displayFreq(1,1,0,0);
 }
 
-float readSWR(int limit)
-{
-#ifdef ADS1X15
-  float auxSWR=1;
-  int16_t adc0, adc1;
-  long ldc0=0; long ldc1=0; 
-  for (byte i=0;i<conf.ATUIter;i++)
-    {
-    ldc0=ldc0+adsA.readADC_SingleEnded(VFORp); // VFORp=0
-    ldc1=ldc1+adsA.readADC_SingleEnded(VREFp); // VREFp=1
-    }
-  adc0 = ldc0/conf.ATUIter; if (adc0<0) adc0=0;
-  adc1 = ldc1/conf.ATUIter; if (adc1<0) adc1=0;
-  
-  vFORc=((float(adc0)*0.1875/1000)+0.25)*11*0.707;
-  vREFc=((float(adc1)*0.1875/1000)+0.25)*11*0.707;
-  //wFORc=vFORc*vFORc/50; wREFc=vREFc*vREFc/50;
-  wFORc=vFORc*vFORc*0.707/50; wREFc=vREFc*vREFc*0.707/50;
-  if ((vFORc-vREFc)>0) SWRreal=(vFORc+vREFc)/(vFORc-vREFc); else SWRreal=1.0;
-  auxSWR=(SWRreal*conf.ATUFactor)+conf.ATUOffset;
-  if (auxSWR<limit) auxSWR=1;
-  return(auxSWR);
-#endif
-}
-
 void setSCAN(byte value)
 {
   if (value==scanF) return;
   scanF=value; 
-  //sendData(tcpscanst); 
+  sendwsData(tcpscanst); 
   displayFlot();
 }
 
 void setSTEP(byte value)
 {
   conf.tuneStepIndex=value; 
-  //sendData(tcptunestep); 
+  sendwsData(tcptunestep); 
   displayFreq(1,1,1,1);  
 }
 
@@ -376,7 +309,7 @@ void doRIT() {
 void setCW(byte value) 
   { 
   conf.cwMode=value; 
-  //sendData(tcpcwMode); 
+  sendwsData(tcpcwMode); 
   if (conf.vfoActive==VFO_A) conf.cwModeA=conf.cwMode; else conf.cwModeB=conf.cwMode;
   btMainact[5]=(conf.cwMode>0);
   displayMain(); 
@@ -388,7 +321,7 @@ void setSPLIT(byte value)
   { 
   conf.splitOn=value;
   btMainact[7]=value;
-  //sendData(tcpsplitOn); 
+  sendwsData(tcpsplitOn); 
   if (conf.splitOn==1) 
     { 
     setRIT(0); 
@@ -403,7 +336,7 @@ void setRIT(byte value)
   { 
   conf.ritOn=value; 
   btMainact[6]=value;
-  //sendData(tcpritOn);   // reenvía estado a cliente
+  sendwsData(tcpritOn);   // reenvía estado a cliente
   if (conf.ritOn==1) 
     { 
     setSPLIT(0); 
@@ -418,7 +351,7 @@ void setRIT(byte value)
 void setVFO(byte value) 
   { 
   conf.vfoActive=value; 
-  //sendData(tcpvfoActive); 
+  sendwsData(tcpvfoActive); 
   if (conf.vfoActive==VFO_A) 
     {
     conf.isUSB=conf.isUSBA; 
@@ -497,7 +430,7 @@ void setATT(int value, byte local)
   SetCarrierFreq();
   if (local==1) {
     updateDisplay(1);
-    //sendData(tcpattlevel);
+    sendwsData(tcpattlevel);
     }
   else
     {
@@ -514,7 +447,7 @@ void setIFS(int value, uint8_t local)
   SetCarrierFreq();
   if (local==1) {
     updateDisplay(1);
-    //sendData(tcpifShiftVal);
+    sendwsData(tcpifShiftVal);
   }
   else
     {
@@ -524,7 +457,7 @@ void setIFS(int value, uint8_t local)
     }
 }
 
-void startTx(byte txMode, byte isDisplayUpdate){
+void startTx(byte txMode, byte isDisplayUpdate) {
   //Check Hamband only TX //Not found Hamband index by now frequency
   tftpage=0;
   unsigned long auxfreq;
@@ -799,3 +732,31 @@ void setupserial2mode()
   conf.serial2Mode=conf.serial2Mode==0?1:0;
   saveconf();
 }
+
+void saveVFOtoMem()   
+{
+  int i=0;
+  while ((i<maxMem) && (memo.act[i]==1)) i++;
+  if (i<maxMem)
+    {
+    strcpy(memo.descr[i], "");
+    int auxI=getCharTFT(memo.descr[i],10); 
+    if (auxI !=-1) 
+      {
+      strcpy(memo.descr[i],auxtft);  
+      memo.act[i]=1;
+      memo.vfoActive[i]=conf.vfoActive;
+      memo.isUSB[i]=conf.isUSB;
+      memo.cwMode[i]=conf.cwMode;
+      memo.ritOn[i]=conf.ritOn;
+      memo.splitOn[i]=conf.splitOn;
+      memo.frequency[i]=conf.frequency;
+      memo.ritTxFrequency[i]=conf.ritOn==1?conf.ritTxFrequency:conf.frequency;
+      memo.cwModespl[i]=conf.cwModeB;
+      memo.ftxspl[i]=conf.frequencyB;
+      savememo();
+      }
+    }
+}
+
+

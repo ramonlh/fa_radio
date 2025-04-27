@@ -1,6 +1,15 @@
 
 #pragma once
 
+// display.h
+uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue, int incStep, const char* Title, int Sensitivity);
+
+#include <ESP32_Servo.h>
+
+#ifdef SERVO
+  Servo cap1, cap2;
+#endif
+
 void setupATU(uint8_t C) {
   if (C==1) { 
     conf.posATUC1=getValByKnob(3, conf.posATUC1, 0, 180, 1, "C1", 1); 

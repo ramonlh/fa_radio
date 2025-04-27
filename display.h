@@ -1,6 +1,9 @@
 
 #pragma once
 
+
+// ws_server
+void sendwsData(uint8_t c);
 // funciones externas
 // radio.h
 void setRIT(uint8_t value);
@@ -23,12 +26,23 @@ void setTPAMaxGain(uint8_t maxgain); // de -28 a +30,  (0-12)
 void calcSmeterScale();
 void setupconnmode();
 void setupserial2mode();
+void setSCAN(byte value);
+void setMEMtoVFO(int pos);
+void saveVFOtoMem();
+uint8_t delay_background(unsigned delayTime, byte fromType, byte swr);
+
 
 // atu.h
 void setupATU(uint8_t C);
 
 // wifi_f.h
 void setWiFi();
+
+// cw_f.h
+void cwKeydown();
+void cwKeyUp();
+
+
 
 /********************************************
 // you must define this pins at file "User_setup.h" from TFT_eSPI library
@@ -49,7 +63,6 @@ void setWiFi();
 TFT_eSPI tft = TFT_eSPI();  // Invoke library, pins defined in User_Setup.h
 
 uint8_t tftpage = 0;
-uint8_t keylock = 0; // bloqueo teclado y botones
 
 void clearTFT()
 {
@@ -97,6 +110,7 @@ void displayTime()
 
 void displayTemp()
 {
+  //for (int i=0; i<3; i++) { s2("i:"); s2(i); s2("-->"); s2(MbR[i]); s2(crlf); }
   tft.setTextDatum(MR_DATUM);     // derecha
   tft.setTextColor(TFT_WHITE);
   btSta[5].initButtonUL(&tft,100,220,20,20,2,MbR[0]>4000?TFT_ORANGE:MbR[0]>4500?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[0]/100,buff,10),1);
@@ -244,11 +258,10 @@ void displaygauge(byte tipo,int value,int xcen,int ycen,int rad,byte fondo,int m
 
 void displaySmeter(int x, int y, int r, byte fondo)
 {
-  //readSmeter();
   displaygauge(1,smetervalue,x,y,r,fondo,0,90,90,15);
 }
 
-void displaySMETER()
+void displaysetupSmeter()
 {
   for (byte i=0;i<5;i++) if (btSmeact[i]==1)
     {
@@ -318,7 +331,6 @@ void drawNumberB(long value,int x, int y, int w, int h, int backcolor, int textc
   btN.initButtonUL(&tft,x,y,w,h,2,backcolor,textcolor,itoa(value,buff,10),size);
   btN.drawButton();
 }
-
 
 void displaybarSmeter(int x,int y,int min,int max, int divi)   // display bar
 {
@@ -695,6 +707,7 @@ void displayMenuNav()
 }
 
 void updateDisplay(byte alldata) {
+  s2("updateDisplay\n");
   boolean localdebug=false;
   clearTFT();
   if (tftpage==0)   // Main page
@@ -725,6 +738,7 @@ void updateDisplay(byte alldata) {
       else if (conf.framemode==3) { displayFreqs(); }  // frequencies
       }
     displayFreq(0,1,1,1);   // frecuencia
+    displayStatus();
     }
   else if (tftpage==1) { displayUSERSet(); displayNav(); }   // Setup User
   else if (tftpage==2) { displaySetRad();  displayNav(); }   // Setup radio
@@ -735,7 +749,7 @@ void updateDisplay(byte alldata) {
   else if (tftpage==7) { displayMemMan(); displayNav();  }   // Mem manage
   else if (tftpage==8) { displayATU(); displayNav();     }   // ATU
   else if (tftpage==9) { displayTPA2016(); displayNav(); }   // Audio amplifier TPA2016
-  else if (tftpage==10) { displaySMETER(); displayNav(); }   // S-Meter
+  else if (tftpage==10) { displaysetupSmeter(); displayNav(); }   // S-Meter
   else if (tftpage==11) { displayCONNS(); displayNav();  }   // Connections
   else if (tftpage==12) { displayMenuTEMP(); displayNav();  }   // Temperatures
   else if (tftpage==13) { displayMenuPORTS(); displayNav();  }   // Ports
@@ -754,7 +768,9 @@ void updateDisplay(byte alldata) {
     
     tft.drawString("ADSB",0,80);
     }
-  else if (tftpage==24) {  displayMenuNav();  }
+  else if (tftpage==24) {  
+    displayMenuNav();  
+    }
 }
 
 void setLOCK(byte value)
@@ -767,7 +783,7 @@ void setLOCK(byte value)
   else
     strcpy(btFlottext[3],"Lock");
   keylock=value; 
-  //sendData(tcpkeylock); 
+  sendwsData(tcpkeylock); 
   displayFlot();
 }
 
@@ -924,8 +940,6 @@ void tftErrormsg(char *texto1, char *texto2, char *texto3)
   delay(2000);
 }
 
-
-
 void startScan(byte dir)
 {
   if ((conf.actualBand==99) && (conf.scanallf==0))
@@ -935,7 +949,7 @@ void startScan(byte dir)
     updateDisplay(1);
     return;
     }
-  //setSCAN(scanF==dir?0:dir);
+  setSCAN(scanF==dir?0:dir);
   lastframemode=conf.framemode;
   conf.framemode=0;
 }
@@ -950,7 +964,7 @@ void checkFlotButtons(uint16_t x, uint16_t y)
       if (keylock==1) return; 
       if (i==0)     // ent frequency
         {
-        //setSCAN(0);
+        setSCAN(0);
         long auxL=getNumberTFT(conf.frequency/1000,5,"Khz");  // retorna con OK o Cancel
         if (auxL!=-1) { setFrequency(auxL*1000); }
         updateDisplay(1);
@@ -962,13 +976,13 @@ void checkFlotButtons(uint16_t x, uint16_t y)
         if (conf.memMode==0)   // VFO mode
           { 
           conf.lastmempos=mempos; 
-          //saveVFOtoMem();
+          saveVFOtoMem();
           updateDisplay(1); 
           }
         else               // Mem mode
           { 
           mempos=conf.lastmempos; 
-          //setMEMtoVFO(mempos); 
+          setMEMtoVFO(mempos); 
           }          
         saveconf();
         }     
@@ -1005,14 +1019,17 @@ void checkVFOButtons(uint16_t x, uint16_t y)
 }
 
 
- char byteToChar(byte srcByte){ return srcByte < 10?0x30 + srcByte:'A' + srcByte - 10; }
+ char byteToChar(byte srcByte) { 
+  return srcByte < 10?0x30 + srcByte:'A' + srcByte - 10; 
+  }
 
 //returns true if the button is pressed
 //int btnDown(void) { return digitalRead(FBUTTON) == HIGH?0:1; }
-int getBtnStatus(){ return digitalRead(FBUTTON) == HIGH?0:1; }
+int getBtnStatus() { 
+  return digitalRead(FBUTTON) == HIGH?0:1; 
+  }
 
 int enc_prev_state = 3;
-
 
 byte enc_state (void) {
 //  return (digitalRead(ENC_A)==1?1:0) + (digitalRead(ENC_B)==1?2:0);
@@ -1052,26 +1069,6 @@ int enc_read(void) {
   return(result);
 }
 
-//===================================================================
-//I2C Signal Meter, Version 1.097
-//===================================================================
-
-// 0xA0 ~ 0xCF : CW Decode Mode + 100Hz ~
-// 0xD0 ~ 0xF3 : RTTY Decode Mode + 100Hz ~
-// 0x10 ~ 0x30 : Spectrum Mode
-int GetI2CSmeterValue(int valueType)
-{
-  if (valueType > 0)
-    {
-    Wire.beginTransmission(I2CMETER_ADDR);  //j : S-Meter
-    Wire.write(valueType);                  //Y : Get Value Type
-    Wire.endTransmission();
-    }
-  Wire.requestFrom(I2CMETER_ADDR, 1);
-  return Wire.available() > 0?Wire.read():0;
-}
-
-
 uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue, int incStep, const char* Title, int Sensitivity)
 {
   int knob;
@@ -1095,7 +1092,6 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
     displayIFS(1,0,0); 
     if (conf.framemode==0) 
       {
-      //readSmeter();
       displaySmeter(190,210,50,1);
       }
     else if (conf.framemode==1) displaybarSmeter(40,166,0,90,87); 
@@ -1117,12 +1113,10 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
     displayATT(1,0,0); 
     if (conf.framemode==0) 
       {
-      //readSmeter();
       displaySmeter(190,210,50,1);
       }
     else if (conf.framemode==1) 
       {   
-      //readSmeter();   // valores de 0 a 90
       displaybarSmeter(40,186,0,90,69);
       }
     else if (conf.framemode==2) displaySpectrum();
@@ -1173,12 +1167,12 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
         }
       else if (valueType==3)        // ajustar C1
         {
-        //cap1.write(targetValue);             // tell servo to go to position in variable '0'
+        cap1.write(targetValue);             // tell servo to go to position in variable '0'
         displayneedle(targetValue,160,190,140,minValue,maxValue,180);
         }
       else if (valueType==4)        // ajustar C2
         {
-        //cap2.write(targetValue);             // tell servo to go to position in variable '0'
+        cap2.write(targetValue);             // tell servo to go to position in variable '0'
         displayneedle(targetValue,160,190,140,minValue,maxValue,180);
         }
       else if (valueType==5)        // squelch
@@ -1196,28 +1190,25 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
         }
       else if (valueType==7)      // Max gain TPA2016
         { 
-        //setTPAMaxGain(targetValue);
+        setTPAMaxGain(targetValue);
         }
       else if (valueType==8)      // Gain TPA2016
         { 
-        //setTPAGain(targetValue);
+        setTPAGain(targetValue);
         }
       }  
     if (valueType==2)   // IFS
       {
       if (conf.framemode==0) 
         {
-        //readSmeter();
         displaySmeter(190,210,50,1);
         }
       else if (conf.framemode==1) 
         {
-        //readSmeter();
         displaySmeter(190,210,50,1);
         }
       else if (conf.framemode==3) 
         {   
-        //readSmeter();   // valores de 0 a 90
         displaybarSmeter(40,186,0,90,69);
         }
       }
@@ -1225,17 +1216,14 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
       {
       if (conf.framemode==0) 
         {
-        //readSmeter();
         displaySmeter(190,210,50,1);
         }
       else if (conf.framemode==1) 
         {
-        //readSmeter();
         displaySmeter(190,210,50,1);
         }
       else if (conf.framemode==3) 
         {
-        //readSmeter();
         displaybarSmeter(40,166,0,90,87); 
         }
       }
@@ -1261,7 +1249,7 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
       return targetValue;
     else if (auxres==1) 
       return antvalue;
-    //Check_Cat(0);  //To prevent disconnections
+    Check_Cat(0);  //To prevent disconnections
     }  
   s2("targetValue:"); s2(targetValue);s2(crlf);
   return targetValue;
@@ -1290,10 +1278,10 @@ void checkSmeterButtons(uint16_t x, uint16_t y)
 
 void setUSB(byte value) 
   {
-  if (value==conf.isUSB)  return;
- conf.isUSB=value; 
- //sendData(tcpisUSB); 
+  if (value == conf.isUSB)  return;
+  conf.isUSB = value; 
   if (conf.vfoActive==VFO_A) conf.isUSBA=conf.isUSB; else conf.isUSBB=conf.isUSB;
+  sendwsData(tcp_is_USB); 
   btMainact[4]=conf.isUSB==1?1:0; 
   strcpy(btMaintext[4],conf.isUSB==1?"USB":"LSB"); 
   displayMain(); 
@@ -1331,12 +1319,12 @@ void checkMainButtons(uint16_t x, uint16_t y)
         else 
           { 
            txTFT=true;
-           //startTx(TX_CW,1); 
-           //cwKeydown();
-           //acopla();
-           //delay_background(conf.ATUdelay*1000,9,1);
-           //cwKeyUp();
-           //stopTx();
+           startTx(TX_CW,1); 
+           cwKeydown();
+           acopla();
+           delay_background(conf.ATUdelay*1000,9,1);
+           cwKeyUp();
+           stopTx();
            txTFT=false;
            }  // TX
         strcpy(btMaintext[0],inTx==0?"ATU":"TX");
@@ -1720,15 +1708,16 @@ void checkPORTSButtons(uint16_t x, uint16_t y)
 {
   for (byte i=0; i<5;i++)
     {
-     if (btPORTS[i].contains(x,y)) 
-       {
-       if (i==0)      { conf.tcpenable=conf.tcpenable==0?1:0; }   // 
-       else if (i==1) { conf.udpenable=conf.udpenable==0?1:0; }      // 
-       else if (i==2) { conf.wsenable=conf.wsenable==0?1:0; }      // 
-       else if (i==3) { conf.webenable=conf.webenable==0?1:0; }      // 
-       else if (i==4) {  }      // 
-       updateDisplay(1);
-       }
+    if (btPORTS[i].contains(x,y)) 
+      {
+      if (i==0)      { conf.tcpenable=conf.tcpenable==0?1:0; }   // 
+      else if (i==1) { conf.udpenable=conf.udpenable==0?1:0; }      // 
+      else if (i==2) { conf.wsenable=conf.wsenable==0?1:0; }      // 
+      else if (i==3) { conf.webenable=conf.webenable==0?1:0; }      // 
+      else if (i==4) {  }      // 
+      saveconf(); 
+      updateDisplay(1);
+      }
     }
 }
 
@@ -1825,7 +1814,7 @@ void handletfttouch()
     else if (tftpage==10) { checkSMEButtons(x,y); checkNavButtons(x,y); checkStaButtons(x,y); }    // S_METER page
     else if (tftpage==11) { checkCONButtons(x,y); checkNavButtons(x,y); checkStaButtons(x,y); }    // CONNS page
     else if (tftpage==12) { checkTEMPButtons(x,y); checkNavButtons(x,y); checkStaButtons(x,y); }  // TEMP page
-    else if (tftpage==13) { checkPORTSButtons(x,y); checkNavButtons(x,y); checkStaButtons(x,y); }  // TEMP page
+    else if (tftpage==13) { checkPORTSButtons(x,y); checkNavButtons(x,y); checkStaButtons(x,y); }  // PORTS page
     else if (tftpage==21) { checkSelButtons(x,y); }    // Select AP
     else if (tftpage==22) 
       { 
@@ -1874,7 +1863,6 @@ void displayFrame()
   if (conf.framemode==0) displaySmeter(190,210,50,1);
   else if (conf.framemode==1) 
       {   
-      //readSmeter();   // valores de 0 a 90
       displaybarSmeter(40,186,0,90,69);
       }
   else if (conf.framemode==2) displaySpectrum();
@@ -1914,3 +1902,7 @@ void displayMemList()   // tftpage=22
     }
 }
 
+void clearLine2()
+{
+  printLine(0,"");
+}

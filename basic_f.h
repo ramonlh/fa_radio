@@ -41,3 +41,29 @@ void printLineF(char linenmbr, const __FlashStringHelper *c)
   printLine(linenmbr, tmpBuff);
 }
 
+void printhelp()
+{
+  s2("debug           (debug ON/OFF)\n");
+  s2("a               (auto WiFi: yes/no)\n");
+  s2("f               (check files)\n");
+  s2("F               (reset factory)\n");
+  s2("h               (help)\n");    
+  s2("p,SSIDpass      (set passSTA)\n");
+  s2("P,SSID-APpass   (set pass AP)\n");
+  s2("r               (reset)\n");  
+  s2("s,SSIDname      (set SSID STA)\n");
+  s2("S,SSID-AP       (set SSID AP)\n");
+  s2("t               (format SPIFFS)\n");
+  s2("u               (show status)\n");
+  s2("w,n             (wifimode:0,1,2,3=OFF,STA,AP,STA+AP)\n");
+  s2("---------------------------------------\n");
+}
+
+String getHora() {
+  time_t now = time(nullptr);
+  struct tm* t = localtime(&now);
+  char buf[9];
+  sprintf(buf, "%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
+  return String(buf);
+}
+

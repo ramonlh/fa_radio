@@ -1,6 +1,8 @@
 
 #pragma once
 
+void initWS();
+
 #include <FTPServer.h>
 #include <WebServer.h>
 #include <Update.h>
@@ -32,10 +34,10 @@ void initupdateserver()
     server.send(200, "text/html", serverIndex);
   });
   server.on("/update", HTTP_POST, []() {
-    server.sendHeader("Connection", "close");
-    server.send(HTTP_CODE_OK, "text/plain", (Update.hasError())?"FAIL":"OK");
-    ESP.restart();
-  }, []() {
+           server.sendHeader("Connection", "close");
+           server.send(HTTP_CODE_OK, "text/plain", (Update.hasError())?"FAIL":"OK");
+           ESP.restart();
+           }, []() {
     HTTPUpload& upload = server.upload();
     if (upload.status == UPLOAD_FILE_START) {
       Serial2.setDebugOutput(true);
@@ -131,7 +133,6 @@ int getMyIP()
   return httpCode;
 }
 
-
 int checkMyIP()
 {
   char auxip[16];
@@ -145,6 +146,9 @@ int checkMyIP()
   return auxR;
 }
 
+void initTCPS() { 
+  //tcpserver.begin(conf.tcpPort); 
+  }
 
 void initNetServices()
 {
@@ -158,25 +162,36 @@ void initNetServices()
     else
       s2("  FTP server disabled");
     s2(crlf);
+
     if (conf.webenable)
       {  
-      initHTML();  s2("  HTML server started"); s2(crlf);
+      initHTML();  s2("  HTML server started"); 
       initWebserver(); s2("  Web server started, port "); s2(conf.webPort);
       }
     else
       s2("  WEB server disabled");
     s2(crlf);
+
     if (conf.tcpenable)
       {
-      //initTCPS(); s2("  TCP server started, port "); s2(conf.tcpPort); 
+      initTCPS(); s2("  TCP server started, port "); s2(conf.tcpPort); 
       }
     else
       s2("  TCP server disabled");
     s2(crlf);
 
+    s2("conf.wsenable:"); s2(conf.wsenable);
+    if (conf.wsenable)
+      {
+      initWS(); s2("  WS server started, port "); s2(conf.wsPort); 
+      }
+    else
+      s2("  WS server disabled");
+    s2(crlf);
+
     if (conf.udpenable) { 
       initUDPS(); 
-      s2("  UDP-S service started, port "); s2(conf.udpPortSmeter);s2(crlf); 
+      s2("  UDP-S service started, port "); s2(conf.udpPortSmeter); 
       s2("  UDP-F service started, port "); s2(conf.udpPortFreq); }
     else
       s2("  UDP server disabled");

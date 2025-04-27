@@ -7,39 +7,12 @@
 OneWire owire(W0);
 DallasTemperature sensors0(&owire);
 
+uint8_t ds18b20active = 0;
+
 int MbR[8]={0,0,0,0,0,0,0,0};      // 0-7 Temperaturas locales
 int MbRant[8]={0,0,0,0,0,0,0,0};   // 0-7 Temperaturas locales anteriores
 byte nTemp=0;                      // número sondas detectadas en cada puerto 1-wire
 uint8_t addr1Wire[maxTemp][8];  // tiene los valores conectados
-
-void leevaloresOW()
-{
-#ifdef DS18B20
-  sensors0.requestTemperatures();
-  for (byte i=0; i<maxTemp; i++)  
-    {
-    if (conf.nprobe[i]>0)
-      {
-      int auxI=sensors0.getTempC(conf.probecode[i])*100;
-      if (auxI>0)
-        {
-        MbR[i] = auxI;
-        MbRant[i] = MbR[i];
-        }
-      }
-    }
-#endif
-}
-
-void initDS18B20() 
-{
-#ifdef DS18B20
-  sensors0.begin();
-  sensors0.setResolution(9);
-  nTemp=sensors0.getDeviceCount();
-  if(nTemp>maxTemp) { nTemp=maxTemp; }
-#endif
-}
 
 void showDS18B20() 
 {
@@ -59,11 +32,39 @@ void showDS18B20()
 #endif
 }
 
-void showDS18B20values() 
-{
-#ifdef DS18B20
-  for (int i=0; i< nTemp; i++) {
-    s2(MbR[i]); s2(crlf);
-    }
-#endif
+void task_ds18b20(void *pvParameters) {
+  //esp_task_wdt_add(NULL);
+  #ifdef DS18B20
+    sensors0.begin();
+    sensors0.setResolution(9);
+    nTemp=sensors0.getDeviceCount();
+    s2("Sondas:"); s2(nTemp); s2(crlf);
+    if(nTemp>maxTemp) { nTemp=maxTemp; }
+    for (int i=0;i<3;i++) {
+      conf.nprobe[i] = i;
+      }
+    showDS18B20();
+  #endif
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+  while(1) {
+    //esp_task_wdt_reset();
+    #ifdef DS18B20
+      sensors0.requestTemperatures();
+      for (uint8_t i=0; i<maxTemp; i++)  
+        {
+        if (conf.probecode[i][0] > 0)
+          {
+          int auxI = sensors0.getTempC(conf.probecode[i])*100;
+          if (auxI>0)
+            {
+            MbR[i] = auxI;
+            MbRant[i] = MbR[i];
+            }
+          }
+        }
+    #endif
+    //esp_task_wdt_reset();
+    vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(task_ds18b20_delay));
+  }
 }
+

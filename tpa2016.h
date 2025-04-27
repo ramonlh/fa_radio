@@ -13,3 +13,12 @@ void initTPA2016()
   audioamp.setGain(conf.TPA2016Gain);
 }
 
+void setTPAGain(uint8_t gain) // de -28 a +30,  (0-12)
+{
+  audioamp.setGain(gain);   setTPAenable(false); setTPAenable(true);
+}
+
+void setTPAMaxGain(uint8_t maxgain) // de -28 a +30,  (0-12)
+{
+  audioamp.setAGCMaxGain(maxgain);
+}

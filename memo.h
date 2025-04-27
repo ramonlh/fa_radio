@@ -3,7 +3,7 @@
 
 typedef struct {    // datos memorias
       uint8_t act[maxMem];         // activa o no
-      uint8_t vfoActive[maxMem];      // VFO 
+      uint8_t vfoActive[maxMem];   // VFO 
       uint8_t isUSB[maxMem];       // mode
       uint8_t cwMode[maxMem];      // CW mode
       uint8_t ritOn[maxMem];       // RIT

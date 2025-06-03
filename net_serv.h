@@ -96,12 +96,9 @@ int checkInternet()
   msg=vacio;
   printP("/");
   HTTPClient http;
-  s2("hostmyip:"); s2(conf.hostmyip);
   http.begin("www.google.com", 80, msg);
   http.setConnectTimeout(2000);
-  s2("checkInternet host: www.google.com:"); s2(80); s2(msg); s2("=");
   int httpCode=http.GET();
-  s2(" "); s2(httpCode);
   http.end();
   msg=vacio;
   return httpCode;
@@ -141,7 +138,6 @@ int checkMyIP()
   if (strcmp(conf.myippub, auxip) != 0) // son diferentes
     {
     saveconf();
-    //if (conf.iftttenabled) ifttttrigger(conucochar, conf.iftttkey, conf.aliasdevice, "NewIP", conf.myippub);
     }
   return auxR;
 }
@@ -154,61 +150,69 @@ void initNetServices()
 {
   if ((conf.wifimode>0))  // 
     {
-    s2("IP services");s2(crlf);
+    s2("Servicios Red");s2(crlf);
+    s2(F("  FTP server"));
     if (conf.ftpenable)
       {
-      initFTP(); s2(F("  FTP server started, port ")); s2(conf.ftpPort); s2(F(" admin/admin"));  
+      initFTP(); s2(F(" iniciado en puerto ")); s2(conf.ftpPort); s2(F(" (admin/admin)\n"));  
       }
     else
-      s2("  FTP server disabled");
-    s2(crlf);
+      s2(" disabled\n");
 
+    s2("  WEB server "); 
     if (conf.webenable)
       {  
-      initHTML();  s2("  HTML server started"); 
-      initWebserver(); s2("  Web server started, port "); s2(conf.webPort);
+      initHTML();
+      initWebserver(); s2(" iniciado en puerto ");  s2(conf.webPort); s2(crlf);
       }
     else
-      s2("  WEB server disabled");
-    s2(crlf);
+      s2(" disabled\n");
 
+    s2("  TCP server "); 
     if (conf.tcpenable)
       {
-      initTCPS(); s2("  TCP server started, port "); s2(conf.tcpPort); 
+      initTCPS(); s2("iniciado en puerto "); s2(conf.tcpPort); s2(crlf);
       }
     else
-      s2("  TCP server disabled");
-    s2(crlf);
+      s2("disabled\n");
 
-    s2("conf.wsenable:"); s2(conf.wsenable);
+    s2("  WS server "); 
     if (conf.wsenable)
       {
-      initWS(); s2("  WS server started, port "); s2(conf.wsPort); 
+      initWS(); s2("iniciado en puerto "); s2(conf.wsPort);  s2(crlf);
       }
     else
-      s2("  WS server disabled");
-    s2(crlf);
+      s2("disabled\n");
 
     if (conf.udpenable) { 
       initUDPS(); 
-      s2("  UDP-S service started, port "); s2(conf.udpPortSmeter); 
-      s2("  UDP-F service started, port "); s2(conf.udpPortFreq); }
+      s2("  UDP server ");
+      s2("S iniciado en puerto "); s2(conf.udpPortSmeter); 
+      s2(", F iniciado en puerto \n"); s2(conf.udpPortFreq); }
     else
-      s2("  UDP server disabled");
-    s2(crlf);
+      s2("disabled\n");
     }
 
   if ((conf.wifimode==1) || (conf.wifimode==3))  // STA o AP+STA
     {
-    int auxI=checkInternet();  s2("  Check Internet: ");s2(auxI==HTTP_CODE_OK?"OK":"ERROR");s2(crlf);
+    int auxI=checkInternet();  
     internetON=(auxI==HTTP_CODE_OK); 
+    s2("  Internet "); 
     if (internetON)
       {
-      s2("Internet services");s2(crlf);
+      s2(" OK\n");
       initTime();       s2("  initTime");s2(crlf);
-      int auxR=checkMyIP();   
-         s2("  MyIP server: "); s2(conf.hostmyip);
-         s2(auxR==HTTP_CODE_OK?" OK ":" ERROR "); s2(conf.myippub); s2(crlf);
+      int auxR = checkMyIP();   
+      s2("  IP publica "); 
+      if (auxR == HTTP_CODE_OK) {
+        s2(conf.myippub); s2(crlf);
+        }
+      else {
+        s2(" ERROR\n");
+        }
+      }
+    else {
+      s2(" ERROR\n");
       }
     }
 }

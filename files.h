@@ -4,25 +4,21 @@
 #include "FS.h"
 #include "SPIFFS.h"
 
-void initSPIFSS(boolean testfiles, boolean format) {
-  s2("SPIFFS ");
-  if (SPIFFS.begin(format)) { 
-    s2("OK"); } 
-  else  { 
-    s2("ERROR"); }
-  s2(crlf);
+int initSPIFSS(boolean testfiles, boolean format) {
+  if (!SPIFFS.begin(format))
+    return 1;
   if (testfiles) {
-    //File dir=SPIFFS.open("/");
     fs::File dir = SPIFFS.open("/");
     fs::File file=dir.openNextFile();
-//    File file=dir.openNextFile();
+    s2("Ficheros:\n");
     while(file) 
       {
-      s2(" "); s2(file.name()); s2(" "); s2(file.size());s2(crlf); 
+      s2("  "); s2(file.name()); s2(" "); s2(file.size());s2(crlf); 
       file.close();
       file=dir.openNextFile(); 
       }
   }
+  return 0;
 }
 
 boolean checkfile(char* namefile) {  

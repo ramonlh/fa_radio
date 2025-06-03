@@ -1,7 +1,6 @@
 
 #pragma once
 
-
 // ws_server
 void sendwsData(uint8_t c);
 // funciones externas
@@ -31,7 +30,6 @@ void setMEMtoVFO(int pos);
 void saveVFOtoMem();
 uint8_t delay_background(unsigned delayTime, byte fromType, byte swr);
 
-
 // atu.h
 void setupATU(uint8_t C);
 
@@ -41,7 +39,6 @@ void setWiFi();
 // cw_f.h
 void cwKeydown();
 void cwKeyUp();
-
 
 
 /********************************************
@@ -98,11 +95,11 @@ void displayTime()
   char auxh[3]=""; if (hour()<10) strcpy(auxh,"0"); strcat(auxh,itoa(hour(),buff,10)); 
   char auxm[3]=""; if (minute()<10) strcpy(auxm,"0"); strcat(auxm,itoa(minute(),buff,10)); 
   char auxs[3]=""; if (second()<10) strcpy(auxs,"0"); strcat(auxs,itoa(second(),buff,10));
-  btSta[1].initButtonUL(&tft,165,220,30,18,2,TFT_BLACK,TFT_WHITE,auxh,2);
+  btSta[1].initButtonUL(&tft,btStaposx[1],btStaposy[1],30,18,2,TFT_BLACK,TFT_WHITE,auxh,2);
+  btSta[2].initButtonUL(&tft,btStaposx[2],btStaposy[2],30,18,2,TFT_BLACK,TFT_WHITE,auxm,2);
+  btSta[3].initButtonUL(&tft,btStaposx[3],btStaposy[3],30,18,2,TFT_BLACK,TFT_WHITE,auxs,2);
   btSta[1].drawButton();
-  btSta[2].initButtonUL(&tft,194,220,30,18,2,TFT_BLACK,TFT_WHITE,auxm,2);
   btSta[2].drawButton();
-  btSta[3].initButtonUL(&tft,223,220,30,18,2,TFT_BLACK,TFT_WHITE,auxs,2);
   btSta[3].drawButton();
   tft.setTextSize(2);  tft.setTextColor(TFT_WHITE);
   tft.setTextDatum(ML_DATUM);     // izquierda
@@ -113,28 +110,35 @@ void displayTemp()
   //for (int i=0; i<3; i++) { s2("i:"); s2(i); s2("-->"); s2(MbR[i]); s2(crlf); }
   tft.setTextDatum(MR_DATUM);     // derecha
   tft.setTextColor(TFT_WHITE);
-  btSta[5].initButtonUL(&tft,100,220,20,20,2,MbR[0]>4000?TFT_ORANGE:MbR[0]>4500?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[0]/100,buff,10),1);
+  for (int i=5; i<=7; i++) {
+    btSta[i].initButtonUL(&tft,btStaposx[i],btStaposy[i],30,30,2,MbR[i-5]>4000?TFT_ORANGE:MbR[i-5]>4500?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[i-5]/100,buff,10),1);
+    btSta[i].drawButton();
+    }
+    /*
+  btSta[5].initButtonUL(&tft,btStaposx[5],btStaposy[5],30,30,2,MbR[0]>4000?TFT_ORANGE:MbR[0]>4500?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[0]/100,buff,10),1);
   btSta[5].drawButton();
-  btSta[6].initButtonUL(&tft,121,220,20,20,2,MbR[1]>4000?TFT_ORANGE:MbR[1]>4500?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[1]/100,buff,10),1);
+  btSta[6].initButtonUL(&tft,btStaposx[6],btStaposy[6],30,30,2,MbR[1]>4000?TFT_ORANGE:MbR[1]>4500?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[1]/100,buff,10),1);
   btSta[6].drawButton();
-  btSta[7].initButtonUL(&tft,141,220,20,20,2,MbR[2]>4500?TFT_ORANGE:MbR[2]>5000?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[2]/100,buff,10),1);
+  btSta[7].initButtonUL(&tft,btStaposx[7],btStaposy[7],30,30,2,MbR[2]>4500?TFT_ORANGE:MbR[2]>5000?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[2]/100,buff,10),1);
   btSta[7].drawButton();
+  */
   tft.setTextDatum(ML_DATUM);     // izquierda
 }
 
-void displayVI()
+void displayVI(int tam, int x, int y)
 {
-  tft.setTextSize(1); tft.setTextColor(TFT_WHITE); 
-  tft.fillRect(40, 208, 80, 10, TFT_BLACK);
-  tft.drawFloat(vtotvalue,1,40,213);
-  tft.drawFloat(itotvalue,3,80,213);
+  tft.setTextDatum(TL_DATUM);     // izquierda
+  tft.setTextSize(2); tft.setTextColor(TFT_GREEN); 
+  tft.fillRect(x, y, 80, tam, TFT_BLACK);
+  tft.drawFloat(vtotvalue, 1,  x, y);
+  tft.drawFloat(itotvalue, 3, x+60, y);
 }
 
 void displayStatus()
 {
   displayTime();
   displayTemp();
-  displayVI();
+  displayVI(20 ,50, 175);
 }
 
 void displayMain()
@@ -144,7 +148,7 @@ void displayMain()
     // botones superiores
     for (uint8_t i=0;i<10;i++)
       {
-      btMain[i].initButtonUL(&tft,btMainposx[i],btMainposy[i],btMaintam[i],30,2,btMainact[i]==1?btMaincol[i]:TFT_WHITE,TFT_BLACK,btMaintext[i],2);
+      btMain[i].initButtonUL(&tft,btMainposx[i],btMainposy[i],btMaintamx[i],btMaintamy[i],2,btMainact[i]==1?btMaincol[i]:TFT_WHITE,TFT_BLACK,btMaintext[i],2);
       btMain[i].drawButton();
       }
     }
@@ -155,11 +159,11 @@ void displayNav()   // botones navegación
   strcpy(btNavtext[1],tftpage==22?"Ed":"<");
   strcpy(btNavtext[2],tftpage==22?"Ok":">");
   strcpy(btNavtext[3],"M");
-  btNav[0].initButtonUL(&tft,0,210,30,30,2,TFT_WHITE,TFT_BLACK,btNavtext[0],2);
+  btNav[0].initButtonUL(&tft,btNavposx[0],btNavposy[0],btNavtamx[0],btNavtamy[0],2,TFT_WHITE,TFT_BLACK,btNavtext[0],2);
   btNav[0].drawButton();
   for (uint8_t i=1;i<5;i++) if (btNavact[i]==1)
     {
-    btNav[i].initButtonUL(&tft,10+22*i,220,20,20,2,TFT_WHITE,TFT_BLACK,btNavtext[i],2);
+    btNav[i].initButtonUL(&tft,btNavposx[i],btNavposy[i],btNavtamx[i],btNavtamy[i],2,TFT_WHITE,TFT_BLACK,btNavtext[i],2);
     btNav[i].drawButton();
     }
 }
@@ -167,17 +171,17 @@ void displayNav()   // botones navegación
 void displayFlot()
 {
   // botones flotantes
-  btFlot[1].initButtonUL(&tft,255,105,65,30,2,scanF==1?TFT_CYAN:TFT_WHITE,TFT_BLACK,btFlottext[1],2);
+  btFlot[1].initButtonUL(&tft,btFlotposx[1],btFlotposy[1],btFlottamx[1],btFlottamy[1],2,scanF==1?TFT_CYAN:TFT_WHITE,TFT_BLACK,btFlottext[1],2);
   btFlot[1].drawButton();
-  btFlot[2].initButtonUL(&tft,255,70,65,30,2,scanF==2?TFT_CYAN:TFT_WHITE,TFT_BLACK,btFlottext[2],2);
+  btFlot[2].initButtonUL(&tft,btFlotposx[2],btFlotposy[2],btFlottamx[2],btFlottamy[2],2,scanF==2?TFT_CYAN:TFT_WHITE,TFT_BLACK,btFlottext[2],2);
   btFlot[2].drawButton();
-  btFlot[3].initButtonUL(&tft,255,210,65,30,2,keylock>0?TFT_RED:TFT_WHITE,TFT_BLACK,btFlottext[3],2);
+  btFlot[3].initButtonUL(&tft,btFlotposx[3],btFlotposy[3],btFlottamx[3],btFlottamy[3],2,keylock>0?TFT_RED:TFT_WHITE,TFT_BLACK,btFlottext[3],2);
   btFlot[3].drawButton();
   if (conf.framemode!=3)
     {
-    btFlot[0].initButtonUL(&tft,255,140,65,30,2,TFT_WHITE,TFT_BLACK,btFlottext[0],2);
+    btFlot[0].initButtonUL(&tft,btFlotposx[0],btFlotposy[0],btFlottamx[0],btFlottamy[0],2,TFT_WHITE,TFT_BLACK,btFlottext[0],2);
     btFlot[0].drawButton();
-    btFlot[4].initButtonUL(&tft,255,175,65,30,2,TFT_WHITE,TFT_BLACK,btFlottext[4],2);
+    btFlot[4].initButtonUL(&tft,btFlotposx[4],btFlotposy[4],btFlottamx[4],btFlottamy[4],2,TFT_WHITE,TFT_BLACK,btFlottext[4],2);
     btFlot[4].drawButton();
     }
 }
@@ -282,39 +286,41 @@ int ifShiftValueant=0;
 
 void displayIFS(byte tam,int x, int y)
 {
-  if (tam==0)   // tamaño pequeño
+ tft.setTextDatum(TL_DATUM);     // izquierda
+ if (tam==0)   // tamaño pequeño
     {
     int auxvalue=conf.ifShiftValue/160+12;
     for (byte i=0; i<25; i++)
       {
       tft.fillRect(x+i*3,y,2,20,(auxvalue>=i-1)&&(auxvalue<=i+1)?conf.ifShiftValue!=0?TFT_CYAN:TFT_LIGHTGREY:TFT_ORANGE);
       }
-    tft.setTextSize(1); tft.setTextColor(TFT_WHITE);
-    tft.drawString("IFS",x,y-5);
-    tft.drawNumber(conf.ifShiftValue,x+30,y-5);
+    tft.setTextSize(2); tft.setTextColor(TFT_WHITE);
+    tft.drawString("IFS",x-40,y+5);
+    tft.drawNumber(conf.ifShiftValue,x+80,y+5);
     }
   else      // tamaño grande
     {
     int auxvalue=conf.ifShiftValue/40+50;
     for (byte i=0; i<100; i++)
       {
-      tft.fillRect(10+i*3,50,2,30,(auxvalue>=i-1) && (auxvalue<=i+1)?TFT_CYAN:TFT_ORANGE);
+      tft.fillRect(x+i*3,y,2,30,(auxvalue>=i-1) && (auxvalue<=i+1)?TFT_CYAN:TFT_ORANGE);
+//      tft.fillRect(10+i*3,50,2,30,(auxvalue>=i-1) && (auxvalue<=i+1)?TFT_CYAN:TFT_ORANGE);
       }
-    tft.drawRect(156,45,10,4,TFT_CYAN);
-    tft.drawRect(156,81,10,4,TFT_CYAN);
+    tft.drawRect(x,y,10,4,TFT_CYAN);
+    tft.drawRect(x,y+30,10,4,TFT_CYAN);
     }
 }
 
 void displayWiFiSt()
 {
   if ((tftpage>0) || (conf.framemode>1)) return;
-  btSta[0].initButtonUL(&tft,0,140,30,30,2,WiFi.isConnected()?TFT_GREEN:TFT_RED,TFT_BLACK,"WiFi",1);
+  btSta[0].initButtonUL(&tft,btStaposx[0],btStaposy[0],btStatamx[0],btStatamy[0],2,WiFi.isConnected()?TFT_GREEN:TFT_RED,TFT_BLACK,"WiFi",1);
   btSta[0].drawButton();
 }
 
 void displayRstBt()
 {
-  btSta[4].initButtonUL(&tft,0,175,30,30,2,TFT_WHITE,TFT_BLACK,"Rst",1);
+  btSta[4].initButtonUL(&tft,btStaposx[4],btStaposy[4],btStatamx[4],btStatamy[4],2,TFT_WHITE,TFT_BLACK,"Rst",1);
   btSta[4].drawButton();
 }
 
@@ -380,26 +386,40 @@ void displayFreqs()
   tft.drawString("Cal",160,193); drawNumberB(conf.calibration,215,180,100,22,TFT_BLACK,TFT_WHITE,2); 
 }
 
+uint16_t smeterx=295;
+uint16_t smetery=175;
+uint16_t smetertam=75;
 
-void displayATT(byte tam,int x, int y)
+uint16_t ifsx=90;
+uint16_t ifsy=150;
+uint16_t ifstam=20;
+
+uint16_t attx=90;
+uint16_t atty=120;
+uint16_t atttam=20;
+
+
+void displayATT(byte tam, int x, int y)
 {
+  tft.setTextDatum(TL_DATUM);     // izquierda
   if (tam==0)   // pequeño
     {
     for (byte i=0; i<25;i++)
-      tft.fillRect(x+i*3,y, 2, 20, conf.attLevel*60/250>i*3?conf.attLevel!=0?TFT_CYAN:TFT_LIGHTGREY:TFT_ORANGE);
-    tft.setTextSize(1); tft.setTextColor(TFT_WHITE);
-    tft.drawString("ATT",x,y-5);
-    tft.drawNumber(conf.attLevel,x+30,y-5);
+      tft.fillRect(x+i*3, y, 2, 20, conf.attLevel*60/250>i*3?conf.attLevel!=0?TFT_CYAN:TFT_LIGHTGREY:TFT_ORANGE);
+    tft.setTextSize(2); tft.setTextColor(TFT_WHITE);
+    tft.drawString("ATT", x-40, y+5);
+    tft.drawNumber(conf.attLevel, x+80, y+5);
     }
   else    // grande
     {
     for (byte i=0; i<25;i++)
-      tft.fillRect(35+i*10,50, 9, 30, conf.attLevel>i*10?conf.attLevel!=0?TFT_CYAN:TFT_LIGHTGREY:TFT_ORANGE);
+      tft.fillRect(x+i*10, y, 9, 30, conf.attLevel>i*10?conf.attLevel!=0?TFT_CYAN:TFT_LIGHTGREY:TFT_ORANGE);
     }
 }
 
 void displayFreq(byte fast, byte fA, byte fB, byte fAux)
 {
+  tft.setTextDatum(TL_DATUM);     // izquierda
   if ((tftpage>0) && (tftpage!=22)) return;
   char freqpart[9][4]={"","","","","","","","",""};
   char freqpartSec[9][4]={"","","","","","","","",""};
@@ -421,13 +441,12 @@ void displayFreq(byte fast, byte fA, byte fB, byte fAux)
     else strcat(freqpartSec[i],itoa((fsec/auxL)%10,buff,10));
     }
   tft.setTextSize(2); tft.setTextColor(colf);
-  tft.setTextDatum(ML_DATUM);
   char auxchar[2][5]={"A","B"};
   
   if (fAux==1)
     {
     if (conf.vfoActive==VFO_B) { strcpy(auxchar[0],"B"); strcpy(auxchar[1],"A"); }
-    btVFO[1].initButtonUL(&tft,0,0,20,20,2,TFT_BLACK,colf,auxchar[1],2);
+    btVFO[1].initButtonUL(&tft, 353, 10, 30,20,2,TFT_BLACK,colf,auxchar[1],2);
     btVFO[1].drawButton();
     if ((conf.ritOn==1) || (conf.splitOn==1))
       {
@@ -451,32 +470,34 @@ void displayFreq(byte fast, byte fA, byte fB, byte fAux)
       }
   
     }
+  // frecuencia secundaria
   if (fB==1)
     {
     for (byte i=0;i<9;i++)    // frecuencia secundaria 
       {
-      btFreqTx[i].initButtonUL(&tft,140+12*i,0,12,20,2,TFT_BLACK,colf,freqpartSec[i],2);
+      btFreqTx[i].initButtonUL(&tft,212+14*i,8,20,20,2,TFT_BLACK,colf,freqpartSec[i],2);
       btFreqTx[i].drawButton();
       }
-    tft.fillCircle(173,14,1,colf);    // punto de miles
-    btVFO[0].initButtonUL(&tft,0,30,30,30,2,TFT_BLACK,TFT_WHITE,auxchar[0],3);
+    tft.fillCircle(256,21,1,colf);    // punto de miles
+    btVFO[0].initButtonUL(&tft, 353,35,30,30,2,TFT_LIGHTGREY,TFT_WHITE,auxchar[0],3);
+    tft.setTextDatum(MC_DATUM);     // izquierda
     btVFO[0].drawButton();
     }
-
+  // frecuencia principal
   if (fA==1)
     {
-    for (byte i=0;i<9;i++)      // frecuencia principal  ping 192.168.1.149
+    for (byte i=0;i<9;i++)      // frecuencia principal  
     
       {
       if ((fast==0) || (strcmp(freqpartant[i],freqpart[i]) != 0))    // son diferentes
         {
         strcpy(freqpartant[i],freqpart[i]);
-        if (i<6) btFreq[i].initButtonUL(&tft,35+26*i,30,26,40,2,TFT_BLACK,conf.tuneStepIndex==i?TFT_YELLOW:TFT_WHITE,freqpart[i],4);
-        else btFreq[i].initButtonUL(&tft,71+20*i,38,20,30,2,TFT_BLACK,conf.tuneStepIndex==i?TFT_YELLOW:TFT_WHITE,freqpart[i],3);
+        if (i<6) btFreq[i].initButtonUL(&tft,125+26*i,30,26,40,2,TFT_BLACK,conf.tuneStepIndex==i?TFT_YELLOW:TFT_WHITE,freqpart[i],4);
+        else btFreq[i].initButtonUL(&tft,161+20*i,38,20,30,2,TFT_BLACK,conf.tuneStepIndex==i?TFT_YELLOW:TFT_WHITE,freqpart[i],3);
         btFreq[i].drawButton();
         }
       }
-    tft.fillCircle(110,62,2,TFT_WHITE);    // punto de miles
+    tft.fillCircle(201,60,2,TFT_WHITE);    // punto de miles
     }
 }
 
@@ -706,8 +727,9 @@ void displayMenuNav()
     }
 }
 
+
 void updateDisplay(byte alldata) {
-  s2("updateDisplay\n");
+  //s2("updateDisplay\n");
   boolean localdebug=false;
   clearTFT();
   if (tftpage==0)   // Main page
@@ -720,17 +742,17 @@ void updateDisplay(byte alldata) {
       displayStatus();  // time, status
       if (conf.framemode==0)      // analog meters
         {
-        if (inTx==0) displaySmeter(190,210,50,1);
-        displayIFS(0,40,185);
-        displayATT(0,40,150);
+        if (inTx==0) displaySmeter(smeterx,smetery,smetertam,1);
+        displayIFS(0,ifsx,ifsy);
+        displayATT(0,attx,atty);
         displayWiFiSt();
         displayRstBt();
         }
       else if (conf.framemode==1)   // digital meters
         {
         if (inTx==0) displaybarSmeter(40,186,0,90,69);
-        displayATT(0,40,150);
-        displayIFS(0,172,150);
+        displayIFS(1,ifsx,ifsy);
+        displayATT(1,attx,atty);
         displayWiFiSt();
         displayRstBt();
         }
@@ -1089,10 +1111,10 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
     }
   if (valueType==2)      // IFS
     { 
-    displayIFS(1,0,0); 
+    displayIFS(1,ifsx,ifsy); 
     if (conf.framemode==0) 
       {
-      displaySmeter(190,210,50,1);
+      displaySmeter(smeterx,smetery,smetertam,1);
       }
     else if (conf.framemode==1) displaybarSmeter(40,166,0,90,87); 
     else if (conf.framemode==2) displaySpectrum();
@@ -1110,10 +1132,10 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
     }
   else if (valueType==6)      // ATT
     { 
-    displayATT(1,0,0); 
+    displayATT(1,attx,atty); 
     if (conf.framemode==0) 
       {
-      displaySmeter(190,210,50,1);
+      displaySmeter(smeterx,smetery,smetertam,1);
       }
     else if (conf.framemode==1) 
       {   
@@ -1160,7 +1182,7 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
       if (valueType==2)   // IFS
         {
         conf.ifShiftValue=targetValue; isIFShift=conf.ifShiftValue==0?0:1;
-        displayIFS(1,0,0);
+        displayIFS(1,ifsx,ifsy);
         setFrequency(conf.frequency);
         SetCarrierFreq();
         if (conf.framemode==3) displayFreqs();
@@ -1183,7 +1205,7 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
       if (valueType==6)   // ATT
         {
         conf.attLevel=targetValue;
-        displayATT(1,0,0);
+        displayATT(1,attx,atty);
         setFrequency(conf.frequency);
         SetCarrierFreq();
         if (conf.framemode==3) displayFreqs();
@@ -1201,11 +1223,11 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
       {
       if (conf.framemode==0) 
         {
-        displaySmeter(190,210,50,1);
+        displaySmeter(smeterx,smetery,smetertam,1);
         }
       else if (conf.framemode==1) 
         {
-        displaySmeter(190,210,50,1);
+        displaySmeter(smeterx,smetery,smetertam,1);
         }
       else if (conf.framemode==3) 
         {   
@@ -1216,11 +1238,11 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
       {
       if (conf.framemode==0) 
         {
-        displaySmeter(190,210,50,1);
+        displaySmeter(smeterx,smetery,smetertam,1);
         }
       else if (conf.framemode==1) 
         {
-        displaySmeter(190,210,50,1);
+        displaySmeter(smeterx,smetery,smetertam,1);
         }
       else if (conf.framemode==3) 
         {
@@ -1264,7 +1286,7 @@ void checkSmeterButtons(uint16_t x, uint16_t y)
       if (i==0)
         {
         conf.scanmode=conf.scanmode<2?conf.scanmode+1:0;
-        displaySmeter(190,210,50,0);
+        displaySmeter(smeterx,smetery,smetertam,0);
         }
       else if (i==1)
         {
@@ -1860,7 +1882,7 @@ void displaySWR(byte tam)
 
 void displayFrame()
 {
-  if (conf.framemode==0) displaySmeter(190,210,50,1);
+  if (conf.framemode==0) displaySmeter(smeterx,smetery,smetertam,1);
   else if (conf.framemode==1) 
       {   
       displaybarSmeter(40,186,0,90,69);

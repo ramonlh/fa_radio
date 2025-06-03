@@ -393,26 +393,21 @@ void saveconf()
 int readconf() {
   // Verificar si el archivo existe antes de abrirlo
   if (!SPIFFS.exists("/ubitx.cnf")) {
-    s2("El archivo /ubitx.cnf no existe\n");
     return 2;  // O crear el archivo si es necesario
-  }
-
+    }
   // Intentar abrir el archivo para lectura
   fs::File auxfile = SPIFFS.open("/ubitx.cnf", "r");
   if (!auxfile) {
-    s2("ERROR OPENNING FILE /ubitx.cnf\n");
     return 3;  // Error al abrir el archivo
-  }
+    }
 
   // Leer los datos del archivo
   int bytesread = auxfile.read(buffconf, sizeof(conf));
-  Serial2.print("size conf:"); Serial2.print(sizeof(conf));
-  Serial2.print(" leidos:"); Serial2.println(bytesread);
+  s2("  Leidos "); s2(bytesread); s2(" de "); s2(sizeof(conf)); s2(crlf);
   if (bytesread != sizeof(conf)) {
-    s2("ERROR LOADING FILE CONF bytes read: ");
-    s2(bytesread);
-    s2("\n");
-  }
+    s2("  ERROR leyendo fichero\n");
+    return 4;
+    }
   auxfile.close();  // No olvidar cerrar el archivo
   return 0;
 }

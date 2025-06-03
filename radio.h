@@ -1,3 +1,4 @@
+#include "defines.h"
 
 #pragma once
 
@@ -33,6 +34,7 @@ void initSettings(){
     saveconf(); // para iniciar fichero 
     showSettings();
     }
+  conf.wsPort= WSPort;
   if (conf.cwKeyType==1) keyerControl &= ~IAMBICB; else if (conf.cwKeyType==2) keyerControl |= IAMBICB;   
   
   //Enable / Diable Check for CW Display Cofiguration Group 
@@ -101,6 +103,7 @@ void initSettingsAux() {
   conf.ifShiftValue=0;   //
   byte auxconnMode=conf.connMode;
   conf.connMode=0;
+  conf.memMode=0;
 }
 
 void initTone()
@@ -143,6 +146,11 @@ void setTXFilters(unsigned long freq){
       digitalWrite(TX_LPF_B, 0);
       digitalWrite(TX_LPF_C, 1);    
       }
+}
+
+void setFrecuencyB(unsigned long f) {
+  conf.frequencyB = f;
+  sendwsData(tcpfrequencyB);
 }
 
 void setFrequency(unsigned long f) {
@@ -347,7 +355,6 @@ void setRIT(byte value)
   displayFreq(1,1,1,1);
   }
   
-
 void setVFO(byte value) 
   { 
   conf.vfoActive=value; 

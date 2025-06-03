@@ -1,6 +1,9 @@
 
 #pragma once
 
+// radio.h
+extern void setFrecuencyB(unsigned long f);
+
 #include <ArduinoJson.h>
 #include <WebSocketsServer.h>
 
@@ -53,10 +56,10 @@ void sendwsData(uint8_t c) {
   else if (c==tcp_is_USB) { 
     Serial2.println("tcp_is_usb");
     if (conf.vfoActive==VFO_A) {
-      sendws("mode",conf.isUSBA==1?"USB":"LSB"); 
+      sendws("modea",conf.isUSBA==1?"USB":"LSB"); 
       }
     else {
-      sendws("mode",conf.isUSBB==1?"USB":"LSB"); 
+      sendws("modea",conf.isUSBB==1?"USB":"LSB"); 
       }
     }
   else if (c==tcpritOn) { sendws("rit", conf.ritOn==1?"ON":"OFF");  }
@@ -116,13 +119,37 @@ void onWebSocketEvent(uint8_t clientNum, WStype_t type, uint8_t * payload, size_
   if (tipo == "fA") {
     setFrequency(valor.toInt());
     displayFreq(1, 1, 1, 1);
-
     } 
-  else if (tipo == "mode") {
-    setUSB(conf.isUSB==0?1:0); // Cambiar el modo (LSB, USB)
+  if (tipo == "fB") {
+    setFrecuencyB(valor.toInt());
+    displayFreq(1, 1, 1, 1);
     } 
   else if (tipo == "vfo") {
     setVFO(conf.vfoActive==VFO_A?VFO_B:VFO_A);  // Cambiar el VFO activo
+    } 
+  else if (tipo == "modea") {
+    setUSB(conf.isUSB==0?1:0); // Cambiar el modo (LSB, USB)
+    } 
+  else if (tipo == "cwa") {
+    setCW(conf.cwMode==0?1:0);    // cambiar CW on,off
+    } 
+  else if (tipo == "modeb") {
+    setUSB(conf.isUSB==0?1:0); // Cambiar el modo (LSB, USB)
+    } 
+  else if (tipo == "cwb") {
+    setCW(conf.cwMode==0?1:0);    // cambiar CW on,off
+    } 
+  else if (tipo == "ba-") {
+    setNextHamBandFreq(conf.frequency,-1);
+    } 
+  else if (tipo == "ba+") {
+    setNextHamBandFreq(conf.frequency,+1);
+    } 
+  else if (tipo == "bb-") {
+    setNextHamBandFreq(conf.frequency,-1);
+    } 
+  else if (tipo == "bb+") {
+    setNextHamBandFreq(conf.frequency,+1);
     } 
   else if (tipo == "rit") {
     setRIT(conf.ritOn==1?0:1); // Activar/desactivar RIT

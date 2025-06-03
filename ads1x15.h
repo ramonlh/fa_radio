@@ -5,7 +5,7 @@
 
 void ajustarsmeter(int16_t valorleido)
 {
-  //s2("smeter:"); s2(valorleido);
+  //s2("smeter :"); s2(valorleido);
   // todo lo que sigue hay que sacarlo de la task para ahorrar tiempo y hacerse fuera ??
   calSmeterReq=calSmeterReq || (valorleido<conf.sMeterLevels[0]) || (valorleido>conf.sMeterLevels[15]);
   //valorleido=valorleido>smeterlast?((smeterlast*7+valorleido*3))/10:   // valor ajustado para evitar variaciones rápidas
@@ -57,25 +57,29 @@ void task_ads1115(void *pvParameters) {
     //esp_task_wdt_reset();
     #ifdef ADS1X15
       while(1) {
-      // read smeter
-      int16_t smeteradc=0;
-      smeteradc = adsA.readADC_SingleEnded(SMETERp);    // es el valor leído del ADC sin convertir
-      ajustarsmeter(smeteradc);
+        if (inTx==0) {
+          // read smeter
+          int16_t smeteradc=0;
+          smeteradc = adsA.readADC_SingleEnded(SMETERp);    // es el valor leído del ADC sin convertir
+          //s2("sme:"); s2(smeteradc);s2(crlf);
+          ajustarsmeter(smeteradc);
+          // read CW     ¡Sólo si en modo CW!
+          cwcodevalue = adsB.readADC_SingleEnded(3); 
+          }
+        else {
+          // read SWR ¡Sólo en modo TX!
+          int16_t adc0, adc1;
+          long ldc0=0; long ldc1=0; 
+          for (byte i=0;i<conf.ATUIter;i++)
+            {
+            ldc0=ldc0+adsA.readADC_SingleEnded(VFORp); // VFORp=0
+            ldc1=ldc1+adsA.readADC_SingleEnded(VREFp); // VREFp=1
+            }
+          adc0 = ldc0/conf.ATUIter; if (adc0<0) adc0=0;
+          adc1 = ldc1/conf.ATUIter; if (adc1<0) adc1=0;
+          ajustarswr(adc0, adc1);
+          }
 
-      // read SWR ¡Sólo en modo TX!
-      int16_t adc0, adc1;
-      long ldc0=0; long ldc1=0; 
-      for (byte i=0;i<conf.ATUIter;i++)
-        {
-        ldc0=ldc0+adsA.readADC_SingleEnded(VFORp); // VFORp=0
-        ldc1=ldc1+adsA.readADC_SingleEnded(VREFp); // VREFp=1
-        }
-      adc0 = ldc0/conf.ATUIter; if (adc0<0) adc0=0;
-      adc1 = ldc1/conf.ATUIter; if (adc1<0) adc1=0;
-      ajustarswr(adc0, adc1);
-
-      // read CW     ¡Sólo si en modo CW!
-      cwcodevalue = adsB.readADC_SingleEnded(3); 
       //esp_task_wdt_reset();
       vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(task_ads1115_delay));
       }

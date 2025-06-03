@@ -23,7 +23,7 @@ TFT_eSPI_Button btMemMan[5];       // buttons mem manager
 TFT_eSPI_Button btNet[5];          // buttons Setting Net display
 TFT_eSPI_Button btFlot[5];         // buttons flotantes
 TFT_eSPI_Button btKEYER[8];        // buttons KEYER setting
-TFT_eSPI_Button btSta[8];          // buttons Status (Wifi,Hour, Min, Sec, Rst, TR1, TR2, T5v)
+TFT_eSPI_Button btSta[8];          // buttons Status (Wifi, Hour, Min, Sec, Rst, TR1, TR2, T5v)
 TFT_eSPI_Button btYN[3];           // buttons OK / Cancel / Backspace
 TFT_eSPI_Button btKey[50];         // buttons Key 0..9, A..Z & symbols
 TFT_eSPI_Button btSel[4];          // botones barra estado: "< Cancel OK >"
@@ -52,11 +52,58 @@ byte btMenuNavact[20]={1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0};
 byte btMainact[10] = {0,0,0,0,0,0,0,0,0,0};
 
 char btMaintext[10][6] = {"ATU","V/M","Band-","Band+","LSB","CW","RIT","SPL","IFS","ATT"};
+char btFlottext[5][6]={"Ent","Scan-","Scan+","Lock",">MEM"};
+char btNavtext[5][8]={"H","<",">","M","xxx"};
 
-int16_t btMainposx[10]={ 0,64,255,255, 64,   0,128,192,128,192}; // position mains buttons
-int16_t btMainposy[10]={70,70, 35,  0,105, 105, 70, 70,105,105}; // position mains buttons
-int16_t btMaintam[10]={60,60, 65, 65,60, 60, 60, 60,60,60}; // position mains buttons
-uint16_t btMaincol[10]={TFT_RED,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_CYAN,TFT_ORANGE,TFT_YELLOW,TFT_YELLOW};
+#ifdef PANTALLA28P
+  uint16_t btMainposx[10]={ 0,64,255,255, 64,   0,128,192,128,192}; // position mains buttons
+  uint16_t btMainposy[10]={70,70, 25,  0,105, 105, 70, 70,105,105}; // position mains buttons
+  uint16_t btMaintamx[10]={60,60, 60, 60, 60, 60, 60, 60,60,60}; // position mains buttons
+  uint16_t btMaintamy[10]={30,30, 30, 30, 30, 30, 30, 30,30,30}; // position mains buttons
+  uint16_t btMaincol[10]={TFT_RED,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_CYAN,TFT_ORANGE,TFT_YELLOW,TFT_YELLOW};
+
+  uint16_t btFlotposx[5]={255, 255, 255, 255, 255}; // position Flot buttons
+  uint16_t btFlotposy[5]={140, 91, 61,  210, 175}; // position Flot buttons
+  uint16_t btFlottamx[5]={60,60, 60, 60,60}; // position Flot buttons
+  uint16_t btFlottamy[5]={30,30, 30, 30,30}; // position Flot buttons
+
+  uint16_t btNavposx[5]={0, 32, 54, 76, 98}; // position Nav buttons
+  uint16_t btNavposy[5]={220, 220, 220,  220, 220}; // position Nav buttons
+  uint16_t btNavtamx[5]={60,60, 60, 60,60}; // position Flot buttons
+  uint16_t btNavtamy[5]={30,30, 30, 30,30}; // position Flot buttons
+
+  //char btStatext[5][8]={"WiFi","T1","T2","T3","Rst", "H", "M", "S"};
+  uint16_t btStaposx[8]={  0, 165, 195, 225,   0,  0, 128, 192}; // position status buttons
+  uint16_t btStaposy[8]={140, 220, 220, 220, 175,  0, 128, 192}; // position status buttons
+  uint16_t btStatamx[8]={20,   20,  20,  20,  20, 20,  20,  20}; // position Flot buttons
+  uint16_t btStatamy[8]={20,   20,  20,  20,  20, 20,  20,  20}; // position Flot buttons
+#endif
+#ifdef PANTALLA40P
+  //char btMaintext[10][6] = {"ATU","V/M","Band-","Band+","LSB","CW","RIT","SPL","IFS","ATT"};
+  uint16_t btMainposx[10]={ 50, 135, 390, 390,  135,  50, 220, 305, 220, 305}; // position mains buttons
+  uint16_t btMainposy[10]={195, 195,  50,   5,  240, 240, 195, 195, 240, 240}; // position mains buttons
+  uint16_t btMaintamx[10]={80, 80, 80, 80, 80, 80, 80, 80, 80, 80}; // position mains buttons
+  uint16_t btMaintamy[10]={40, 40, 40, 40, 40, 40, 40, 40, 40, 40}; // position mains buttons
+  uint16_t btMaincol[10]={TFT_RED,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_CYAN,TFT_ORANGE,TFT_YELLOW,TFT_YELLOW};
+
+  //char btFlottext[5][6]={"Ent","Scan-","Scan+","Lock",">MEM"};
+  uint16_t btFlotposx[5]={390, 390, 390, 390, 390}; // position Flot buttons
+  uint16_t btFlotposy[5]={195, 145,  100, 285, 240}; // position Flot buttons
+  uint16_t btFlottamx[5]={80,   80,  80,  80,  80}; // tam x Flot buttons
+  uint16_t btFlottamy[5]={40,   40,  40,  40,  40}; // tam y Flot buttons
+
+  //char btNavtext[5][8]={"H","<",">","M","xxx"};
+  uint16_t btNavposx[5]={0, 32, 64, 96, 128}; // position Nav buttons
+  uint16_t btNavposy[5]={290, 290, 290,  290, 290}; // position Nav buttons
+  uint16_t btNavtamx[5]={30,30, 30, 30,30}; // tam Nav buttons
+  uint16_t btNavtamy[5]={30,30, 30, 30,30}; // tem Nav buttons
+
+  //char btStatext[5][8]={"WiFi","H","M","S","Rst", "T1", "T2", "T3"};
+  uint16_t btStaposx[8]={324, 229, 261, 293, 356, 128, 160, 192}; // position status buttons
+  uint16_t btStaposy[8]={290, 300, 300, 300, 290, 290, 290, 290}; // position status buttons
+  uint16_t btStatamx[8]={ 30,  30,  30,  30,  30,  30,  30,  30}; // position Flot buttons
+  uint16_t btStatamy[8]={ 30,  30,  30,  30,  30,  30,  30,  30}; // position Flot buttons
+#endif
 
 char btCaltext[5][11]={"Calibrati.","Adj. BFO","SI5351 Ad.","xxx","Reset Fact"};
 char btSmetext[5][11]={"Min. Value","Max. Value","xxx","xxx","xxx"};
@@ -71,8 +118,6 @@ char btSettext[5][11]={"Language","CallSign","Latitude","Longitude","Time Zone"}
 char btSetRadtext[5][11]={"TX range","SSB auto","Scan range","Scan mode","Resume (s)"};
 char btMemMantext[5][11]={"xxx","xxx","xxx","xxx","Clear All"};
 char btNettext[5][11]={"Auto Conn.","Scan SSID","Password","WiFi Mode","Static IP"};
-char btNavtext[5][8]={"H","<",">","M","xxx"};
-char btFlottext[5][6]={"Ent","Scan-","Scan+","Lock",">MEM"};
 char btYNtext[3][6]={"OK","ESC","<--"};
 char btKeytextL[50][3]={"0","1","2","3","4","5","6","7","8","9",
                         "a","b","c","d","e","f","g","h","i","j",

@@ -17,9 +17,8 @@ uint8_t addr1Wire[maxTemp][8];  // tiene los valores conectados
 void showDS18B20() 
 {
 #ifdef DS18B20
-  s2(F("DS18B20 probes\n"));
-  s2("  "); s2("Sondas:");  
-  s2(nTemp); s2(crlf); s2("  "); s2("Modo:");  s2(":");  s2("  "); 
+  s2(F("task DS18B20\n"));
+  s2("  Sondas:"); s2(nTemp); s2("\n  Modo: "); 
   s2((sensors0.isParasitePowerMode())?"Parasite\n":"Power\n");
   for(byte i=0; i<maxTemp; i++)       {   // busca sondas conectadas
     if (sensors0.getAddress(addr1Wire[i], i))    {
@@ -28,7 +27,7 @@ void showDS18B20()
       s2(crlf);
       }
     }
-  s2(F("  Started\n"));
+  s2(F("  -------------\n"));
 #endif
 }
 
@@ -38,7 +37,6 @@ void task_ds18b20(void *pvParameters) {
     sensors0.begin();
     sensors0.setResolution(9);
     nTemp=sensors0.getDeviceCount();
-    s2("Sondas:"); s2(nTemp); s2(crlf);
     if(nTemp>maxTemp) { nTemp=maxTemp; }
     for (int i=0;i<3;i++) {
       conf.nprobe[i] = i;

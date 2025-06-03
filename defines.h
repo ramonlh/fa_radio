@@ -3,10 +3,10 @@
 
 // tasks
 #define task_ds18b20_size 2048
-#define task_ds18b20_priority 1
+#define task_ds18b20_priority 2
 #define task_ds18b20_delay 10000
 
-#define task_ads1115_size 2048
+#define task_ads1115_size 4096
 #define task_ads1115_priority 1
 #define task_ads1115_delay 1000
 
@@ -38,7 +38,7 @@
 #define ENC_A         34    // INPUT
 #define ENC_B         35    // INPUT
 #define FBUTTON       36    // INPUT     36=VP
-#define PTT           15    // INPUT
+#define PTT           15    // INPUT  botón micrófono
 #define ANALOG_KEYER  33    // INPUT ANALOG
 #define TX_RX         23   // Relay
 #define CW_TONE       16   // OUTPUT PWM
@@ -109,6 +109,7 @@ long timezoneval[39]={-43200,-39600,-36000,-34200,-32400,-28800,-25200,-21600,-1
 #define tcpsplitOn 3
 #define tcp_is_USB 4
 #define tcpcwMode 5
+#define tcp_is_USBB 6
 #define tcpritOn 8
 #define tcpvfoActive 19
 #define tcpisusbA 20

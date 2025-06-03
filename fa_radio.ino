@@ -1,5 +1,17 @@
  
 
+// sólo debe haber una línea sin comentar
+//#define PLACAVERDE          // no recuerdo que placa es ésta
+//#define PLACAAMARILLA       // CYD integrada con esp32
+//#define RADUINO32           // Raduino32
+//#define RADUINO32_4P           // Raduino32 con pantalla 4 pulgadas ILI9488
+//#define PLACA4MOTORES       // placa 4 motores coche Diego
+//#define PLACA4MOTORES       // placa 4 motores coche Diego
+
+//#define PANTALLA28P          // 
+#define PANTALLA40P          //
+
+
 #define FIRMWARE_VERSION_INFO F("0.1")
 
 // librerias 
@@ -38,44 +50,57 @@
 
 void setup()
 {
-  initSerial2(115200);          s2("Serial 2 started\n"); 
-  //init_cat(38400, SERIAL_8N1);  s2("Serial 1 started\n");
-  init_EEprom();
-  initTFT();      s2("TFT iniciado\n");
-  s2("Vers.:"); s2(FIRMWARE_VERSION_INFO); s2("\n");
-  initSPIFSS (false, false);   // par1: test  ficheros   par2: formatear
+  initSerial2(115200);          
   s2("========== Init =========\n");
-  initConf();   // se asignan valores iniciales
-  readconf();
+                                s2("Serial 2 OK\n"); 
+  Init_Cat(38400, SERIAL_8N1);  s2("Serial 1 OK\n");
+  init_EEprom();                s2("EEPROM OK\n");
+  initTFT();                    s2("TFT OK\n");
+  s2("Version:"); s2(FIRMWARE_VERSION_INFO); s2("\n");
+  s2("SPIFFS\n");
+  if (initSPIFSS (true, false)==0) {   // par1: test  ficheros   par2: formatear
+    s2("  OK\n");
+    }
+  else {
+    s2("  ERROR\n");
+    }
+  initConf();   // se asignan valores iniciales por si falla la lectura
+  s2("CONF\n");
+  int err = readconf();
+  if (err == 0)
+    s2("  OK\n");
+  else if (err == 2)
+    s2("  El archivo /ubitx.cnf no existe\n");
+  else if (err == 3)
+    s2("  Error al abrir /ubitx.cnf\n");
+  else if (err == 4)
+    s2("  Error tamaño fichero /ubitx.cnf\n");
 
-  Wire.begin(SDA,SCL);      s2("I2C started\n");
+  Wire.begin(SDA,SCL);      s2("I2C OK\n");
   //showSettings();
   initPorts();              s2("Ports OK\n");  
   initSettings(); 
   initSettingsAux();   
-  initOscillators();        s2("Oscillators started\n");
+  initOscillators();        s2("Oscilador OK\n");
   initTone();               s2("Pin Tone OK\n");
   setFrequency(conf.frequency);  
-  initATU();                s2("ATU started\n");
+  initATU();                s2("ATU OK\n");
   updateDisplay(1);
   initWiFi();         
   initNetServices();
-  initTPA2016();            s2("TPA2016 started\n");
+  initTPA2016();            s2("TPA2016 OK\n");
   initDecodeCW();           s2("initDecodeCW\n");
   smetervalue=0;  maxsmeter=0;  minsmeter=32000;
   byte auxconnMode=conf.connMode;
   conf.connMode=auxconnMode;
 
   xTaskCreate(task_ds18b20, "Task DS18B20", task_ds18b20_size, NULL, task_ds18b20_priority, NULL);
-  xTaskCreate(task_ads1115, "Task ADS1115", 2048, NULL, task_ds18b20_priority, NULL);
+  xTaskCreate(task_ads1115, "Task ADS1115", task_ads1115_size, NULL, task_ads1115_priority, NULL);
 
-  //showDS18B20(); 
-  //showDS18B20values();
-
-  s2(F("END SETUP"));s2(crlf);  
-  s2("============================");s2(crlf);
-  s2(F("Type 'h' to help")); s2(crlf); 
-  s2("----------------------------");s2(crlf);
+  s2(F("END SETUP\n"));
+  s2("----------------------------\n");
+  s2(F("Type 'h' to help\n")); 
+  s2("============================\n");
   }
 
 
@@ -99,7 +124,7 @@ void task01()
   if ((inTx==0) && (tftpage==0) && (conf.framemode<=1))
     {
     if (conf.framemode==0)  {
-      displaySmeter(190,210,50,1);
+      displaySmeter(smeterx,smetery,smetertam,1);
       }
     else if (conf.framemode==1) {
       displaybarSmeter(40,186,0,90,69);
@@ -152,11 +177,13 @@ void loopaux()
   countloop++;  
   tini=millis();
   handleSerial();  
+
   if (conf.ftpenable) handleFTP();  
   if (conf.webenable) handleWebclient();
   if (conf.wsenable) wsserver.loop(); 
   
   //if (conf.debugenable) Debug.handle();
+  
   if (isCWAutoMode==0)    //when CW AutoKey Mode, disable this process
     {
     if ((!txCAT) && (!txTFT)) { checkPTT(); }  
@@ -167,7 +194,6 @@ void loopaux()
     decodeCW();
     cwKeyer(); 
     }
-
   if (tftpage==0)
     {
     if (inTx==1)  // TX

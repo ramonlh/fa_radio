@@ -8,7 +8,7 @@
 
 #define task_ads1115_size 4096
 #define task_ads1115_priority 1
-#define task_ads1115_delay 1000
+#define task_ads1115_delay 100
 
 // extensions
 #define SERIAL1
@@ -49,6 +49,8 @@
 #define SDA           18
 #define SCL           19
 
+#define FA_A0         
+
 // ADC ports ADS1115
 #define VFORp 0
 #define VREFp 1
@@ -59,7 +61,7 @@
 
 // servidores/puertos
 //****************** PORTS **************************
-#define FTPPort    21
+#define FTPPort     21
 #define TCPPort   8084
 #define UDPPortS  8085
 #define WSPort    8086

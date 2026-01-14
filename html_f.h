@@ -47,9 +47,10 @@ unsigned long lastUpdate = 0;
 
 
 void leerYProcesarHTML(const char* ruta) {
-  File archivo = SPIFFS.open(ruta);
+  File archivo = FFat.open(ruta);
   if (!archivo || archivo.isDirectory()) {
-    Serial2.println("No se pudo abrir el archivo");
+    Serial2.print("No se pudo abrir el archivo: ");
+    Serial2.println(ruta);
     return;
     }
   String html = "";
@@ -373,6 +374,7 @@ void setupDevHTML() {
     }
   serversend200();
 }
+
 void setupBandasHTML() {
   leerYProcesarHTML("/bandas.html");
   // Reemplaza los marcadores %XXX% por los valores actuales
@@ -457,10 +459,6 @@ void setupSegHTML() {
 }
 void filesHTML() {
   leerYProcesarHTML("/files.html");
-  serversend200();
-}
-void actualHTML() {
-  leerYProcesarHTML("/actual.html");
   serversend200();
 }
 
@@ -701,10 +699,10 @@ void initHTML()
   server.on("/es", setupEstadoHTML);
   server.on("/ss", setupSegHTML);
   server.on("/f", filesHTML);
-  server.on("/firm", actualHTML);
+  //server.on("/firm", actualHTML);
   // Maneja la ruta para servir el archivo styles.css
   server.on("/styles.css", HTTP_GET, []() {
-    File file = SPIFFS.open("/styles.css", "r");
+    File file = FFat.open("/styles.css", "r");
     if (file) {
       server.streamFile(file, "text/css");
       file.close();
@@ -714,7 +712,7 @@ void initHTML()
   });
   // Maneja la ruta para servir el archivo script.js
   server.on("/script.js", HTTP_GET, []() {
-    File file = SPIFFS.open("/script.js", "r");
+    File file = FFat.open("/script.js", "r");
     if (file) {
       server.streamFile(file, "application/javascript");
       file.close();
@@ -722,29 +720,7 @@ void initHTML()
       server.send(404, "text/plain", "Archivo no encontrado");
     }
   });
-/**if (!checkfiles()) { server.on("/", filesHTML); return;  }*/
   //server.on("/sc", scanapHTML);
   
-  
-  /*
-  server.on("/l0", handleStateData0);       // data
-  server.on("/l1", handleStateData1);       // data
-  server.on("/l2", handleStateData2);       // data
-  server.on("/l3", handleStateData3);       // data
-  server.on("/l4", handleStateData4);       // data
-  server.on("/l5", handleStateData5);       // data
-  server.on("/l6", handleStateData6);       // data
-  server.on("/l7", handleStateData7);       // data
-  
-  server.on("/f0", handleStateDataf0);       // data fast
-  server.on("/f1", handleStateDataf1);       // data fast
-  server.on("/f2", handleStateDataf2);       // data fast
-  server.on("/f3", handleStateDataf3);       // data fast
-  server.on("/f4", handleStateDataf4);       // data fast
-  server.on("/f5", handleStateDataf5);       // data fast
-  server.on("/f6", handleStateDataf6);       // data fast
-  server.on("/f7", handleStateDataf7);       // data fast
-  server.on("/tt", handleStateTime);         // Pie
-  */
 }
 

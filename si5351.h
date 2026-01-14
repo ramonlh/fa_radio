@@ -112,9 +112,12 @@ void si5351bx_init() {                  // Call once at power-up, start PLLA
 
 void si5351bx_setfreq(uint8_t clknum, uint32_t fout) {  // Set a CLK to fout Hz
   uint32_t  msa, msb, msc, msxp1, msxp2, msxp3p2top;
-  if ((fout < 500000) || (fout > 109000000)) // If clock freq out of range
+  if ((fout < 500000) || (fout > 109000000)) { // If clock freq out of range
+    //Serial2.println("  ERROR"); 
     si5351bx_clken |= 1 << clknum;      //  shut down the clock
+    }
   else {
+    //Serial2.println("  OK"); 
     msa = si5351bx_vcoa / fout;     // Integer part of vco/fout
     msb = si5351bx_vcoa % fout;     // Fractional part of vco/fout
     msc = fout;             // Divide by 2 till fits in reg
@@ -145,6 +148,7 @@ void SetCarrierFreq()
 {
   unsigned long appliedCarrier = ((conf.cwMode == 0 ? conf.usbCarrier : conf.cwmCarrier) + (isIFShift && (inTx == 0) ? conf.ifShiftValue : 0));
   OSC0 = ((conf.sdrModeOn && (inTx == 0)) ? 0 : appliedCarrier);  
+  Serial2.print("set carrier OSC0:"); Serial2.println(OSC0);
   si5351bx_setfreq(0, OSC0); //found bug by KG4GEK
 }
 

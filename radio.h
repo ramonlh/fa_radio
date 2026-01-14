@@ -125,7 +125,7 @@ byte getIndexHambanBbyFreq(unsigned long f)
   return 99;
 }
 
-void setTXFilters(unsigned long freq){
+void setTXFilters_ubitx(unsigned long freq){
     if (freq > 21000000L){  // the default filter is with 35 MHz cut-off
       digitalWrite(TX_LPF_A, 0);
       digitalWrite(TX_LPF_B, 0);
@@ -148,12 +148,53 @@ void setTXFilters(unsigned long freq){
       }
 }
 
+void setTXFilters_fa(unsigned long freq) {
+  Serial2.println("stfilters");
+  for (int i=0;i<6;i++) {
+    digitalWriteMux(muxA[i], 0);
+    }
+  if ((freq >= 1000000L) && (freq < 5000000L))    {  // salida A0, pin 1
+    Serial2.println(0);
+    digitalWriteMux(muxA[0], 1);
+    }
+  else if ((freq >= 5000000L) && (freq < 9000000L))   {  // salida A2, pin 2
+    Serial2.println(2);
+    digitalWriteMux(muxA[2], 1);
+    }
+  else if ((freq >= 9000000L) && (freq < 12000000L))  {  // salida A4, pin 3
+    Serial2.println(4);
+    digitalWriteMux(muxA[4], 1);
+    }
+  else if ((freq >= 12000000L) && (freq < 16000000L))  {  // salida A1, pin 4
+    Serial2.println(1);
+    digitalWriteMux(muxA[1], 1);
+    }
+  else if ((freq >= 16000000L) && (freq < 23000000L))  {  // salida A3, pin 5
+    Serial2.println(3);
+    digitalWriteMux(muxA[3], 1);
+    }
+  else if ((freq >= 23000000L) && (freq <= 30000000L))      {  // salida A5, pin 6
+    Serial2.println(5);
+    digitalWriteMux(muxA[5], 1);
+    }
+}
+
+void setTXFilters(unsigned long freq) {
+#ifdef UBITX_RADIO
+  setTXFilters_ubitx(freq);
+#endif
+#ifdef FA_RADIO
+  setTXFilters_fa(freq);
+#endif
+}
+
 void setFrecuencyB(unsigned long f) {
   conf.frequencyB = f;
   sendwsData(tcpfrequencyB);
 }
 
-void setFrequency(unsigned long f) {
+void setFrequency_ubitx(unsigned long f) {
+  Serial2.println("setFrequency_ubitx");
   setTXFilters(f);
   //alternative to reduce the intermod spur
   IF1=conf.firstIF;
@@ -169,8 +210,10 @@ void setFrequency(unsigned long f) {
     if (conf.cwMode) { OSC2 = IF1 + f + conf.sideTone;  }
     else             { OSC2 = IF1 + f;    }
     }
-  si5351bx_setfreq(2, OSC2); 
+  si5351bx_setfreq(0, OSC0);
   si5351bx_setfreq(1, OSC1);
+  si5351bx_setfreq(2, OSC2); 
+//  delay(30000);
   tini=millis();
   conf.frequency=f;
   conf.actualBand=getIndexHambanBbyFreq(f);
@@ -197,17 +240,84 @@ void setFrequency(unsigned long f) {
     }
 }
 
+void setFrequency_fa(unsigned long f) {
+  setTXFilters(f);
+  //alternative to reduce the intermod spur
+  OSC1=0; 
+  OSC2=0;
+  OSC0 = f + 8000000; // valor de la FI
+  Serial2.print("OSC0:"); Serial2.println(OSC0);
+ 
+  IF1 = 8000000;
+
+  si5351bx_setfreq(0, OSC0); 
+  si5351bx_setfreq(1, OSC1); 
+  si5351bx_setfreq(2, OSC2);
+  tini=millis();
+  conf.frequency=f;
+  conf.actualBand=getIndexHambanBbyFreq(f);
+  Serial2.print("actualBand:"); Serial2.println(conf.actualBand);
+
+  if (conf.actualBand != 99) 
+    conf.freqbyband[conf.actualBand][conf.vfoActive==VFO_A?0:1]=f; 
+  if (conf.vfoActive==VFO_A) {
+    conf.frequencyA=f;
+    sendwsData(tcpfrequencyA);
+   } else {
+     conf.frequencyB=f;  
+     sendwsData(tcpfrequencyB);
+   }
+
+  if (conf.cwMode == 1) {
+    digitalWriteMux(muxB[0], 1);
+    }
+  else
+    {
+    digitalWriteMux(muxB[0], 0);
+    }
+  if (conf.isUSB == 1) {    // USB
+    digitalWriteMux(muxA[7], 0);
+    digitalWriteMux(muxA[6], 1);
+    }
+  else {    // LSB
+    digitalWriteMux(muxA[6], 0);
+    digitalWriteMux(muxA[7], 1);
+    }
+
+  if (scanF==0)
+    {
+    if (!readingspectrum)
+      {
+      sendwsData(tcpfrequencyA);
+      //saveconf();
+      }
+    }
+  else 
+    {
+    sendwsData(tcpfrequencyA);
+    }
+}
+
+void setFrequency(unsigned long f) {
+#ifdef UBITX_RADIO
+  setFrequency_ubitx(f);
+#endif
+#ifdef FA_RADIO
+  setFrequency_fa(f);
+#endif
+}    
+
 void checkPTT(){  
   //we don't check for ptt when transmitting cw
   //if (conf.cwTimeout > 0) return;
   if (digitalRead(PTT) == 0 && inTx == 0)
     {
-    //startTx(TX_SSB, 1);  
+    startTx(TX_SSB, 1);  
     delay(50); //debounce the PTT
     }
   if (digitalRead(PTT) == 1 && inTx == 1)
     {
-    //stopTx(); 
+    stopTx(); 
     }
 }
 
@@ -339,7 +449,6 @@ void setSPLIT(byte value)
   displayFreq(1,1,1,1);
   }
 
-
 void setRIT(byte value) 
   { 
   conf.ritOn=value; 
@@ -443,7 +552,7 @@ void setATT(int value, byte local)
     {
     btMaincol[9]=conf.attLevel>0?TFT_YELLOW:TFT_WHITE; // ATT
     displayMain();
-    displayATT(0,40,150);
+    displayATT(0);
     }
 }
 
@@ -460,19 +569,20 @@ void setIFS(int value, uint8_t local)
     {
     btMaincol[8]=conf.ifShiftValue!=0?TFT_YELLOW:TFT_WHITE; // IFS
     displayMain();
-    displayIFS(0,40,185);
+    displayIFS(0);
     }
 }
 
 void startTx(byte txMode, byte isDisplayUpdate) {
   //Check Hamband only TX //Not found Hamband index by now frequency
+  Serial2.println("TX ON");
   tftpage=0;
   unsigned long auxfreq;
-/**  if ((isTxType & 0x01) != 0x01)
+  if ((isTxType & 0x01) != 0x01)
     {
     digitalWrite(TX_RX, 1);
     }
-  inTx = 1;**/
+  inTx = 1;
   
   if (conf.ritOn)
     {
@@ -498,7 +608,7 @@ void startTx(byte txMode, byte isDisplayUpdate) {
   inTx = 1;
   
   setFrequency(auxfreq);
-  SetCarrierFreq();
+  //SetCarrierFreq();
   if (txMode == TX_CW)
     {
     //turn off the second local oscillator and the bfo
@@ -532,6 +642,7 @@ void startTx(byte txMode, byte isDisplayUpdate) {
 }
 
 void stopTx(void) {
+  Serial2.println("  TX OFF");
   inTx = 0;
   digitalWrite(TX_RX, 0);           //turn off the tx
   SetCarrierFreq();

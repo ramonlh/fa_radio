@@ -1,4 +1,5 @@
 
+
 #pragma once
 
 // radio.h
@@ -18,7 +19,7 @@ void sendws(const char* tipo, T valor) {
   doc["v"] = valor;
   String json;
   serializeJson(doc, json);
-  Serial2.print("Sent:"); Serial2.println(json); 
+  //Serial2.print("Sent:"); Serial2.println(json); 
   wsserver.broadcastTXT(json);
 }
 
@@ -49,6 +50,7 @@ void senwsdataini() {
 }
 
 void sendwsData(uint8_t c) {
+
   //Serial2.print("sendwsData:");Serial2.println(c);
   //if (keylock==1) return;
   char data[60];

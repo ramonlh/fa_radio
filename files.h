@@ -2,27 +2,29 @@
 #pragma once
 
 #include "FS.h"
-#include "SPIFFS.h"
+#include "FFat.h"
 
-int initSPIFSS(boolean testfiles, boolean format) {
-  if (!SPIFFS.begin(format))
-    return 1;
+void initFFat(boolean testfiles, boolean format) {
+  s2("FFat ");
+  if (FFat.begin(format)) { s2("OK\n"); } else  { s2("ERROR\n"); }
+    size_t total = FFat.totalBytes();
+  size_t used = FFat.usedBytes();
+  Serial2.printf("FFat total: %u bytes, usados: %u bytes, libres: %u bytes\n",
+                total, used, total - used);
   if (testfiles) {
-    fs::File dir = SPIFFS.open("/");
-    fs::File file=dir.openNextFile();
-    s2("Ficheros:\n");
+    File dir=FFat.open("/");
+    File file=dir.openNextFile();
     while(file) 
       {
-      s2("  "); s2(file.name()); s2(" "); s2(file.size());s2(crlf); 
+      s2(file.name()); s2(": "); s2(file.size());s2("\n"); 
       file.close();
       file=dir.openNextFile(); 
       }
   }
-  return 0;
 }
 
 boolean checkfile(char* namefile) {  
-  if (!SPIFFS.exists(namefile)) { 
+  if (!FFat.exists(namefile)) { 
     s2(namefile); s2(" no existe\n"); 
     return false; 
     }  
@@ -44,7 +46,7 @@ boolean checkfiles() {
 int readmemo()
 {
   int count=0;
-  fs::File auxfile=SPIFFS.open(filememo,"r");
+  fs::File auxfile=FFat.open(filememo,"r");
   if (auxfile)
     {
     for (count=0;count<sizeof(memo);count++)*(buffmemo+count)=auxfile.read();
@@ -59,7 +61,7 @@ int readmemo()
 
 void savememo()
 {
-  fs::File auxfile=SPIFFS.open(filememo, "w+");
+  fs::File auxfile=FFat.open(filememo, "w+");
   if (auxfile) 
     { 
     int byteswriten=auxfile.write(buffmemo,sizeof(memo)); 

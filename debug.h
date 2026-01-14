@@ -6,7 +6,6 @@ void showSettings()
 {
   s2("-----------------------------------------"); s2(crlf);
   s2("Size of CONF:"); s2(sizeof(conf)); s2(crlf);
-  s2("LIBRE0:"); s2(conf.LIBRE0); s2(crlf);
   s2("calibration:"); s2(conf.calibration); s2(crlf);
   s2("usbCarrier:"); s2(conf.usbCarrier); s2(crlf);
   s2("cwmCarrier:"); s2(conf.cwmCarrier); s2(crlf);
@@ -100,8 +99,6 @@ void showSettings()
     }
   s2("userDev:"); s2(conf.userDev); s2(crlf);
   s2("passDev:"); s2(conf.passDev); s2(crlf);
-  s2("iftttenabled:"); s2(conf.iftttenabled); s2(crlf);
-  s2("iftttkey:"); s2(conf.iftttkey); s2(crlf);
 // s2("iottweetenable:"); s2(conf.iottweetenable); s2(crlf);
 //  s2("iottweetuser:"); s2(conf.iottweetuser); s2(crlf);
 //  s2("iottweetkey:"); s2(conf.iottweetkey); s2(crlf);

@@ -56,51 +56,55 @@ char btFlottext[5][6]={"Ent","Scan-","Scan+","Lock",">MEM"};
 char btNavtext[5][8]={"H","<",">","M","xxx"};
 
 #ifdef PANTALLA28P
+  //char btMaintext[10][6] = {"ATU","V/M","Band-","Band+","LSB","CW","RIT","SPL","IFS","ATT"};
   uint16_t btMainposx[10]={ 0,64,255,255, 64,   0,128,192,128,192}; // position mains buttons
-  uint16_t btMainposy[10]={70,70, 25,  0,105, 105, 70, 70,105,105}; // position mains buttons
+  uint16_t btMainposy[10]={70,70, 35,  0,105, 105, 70, 70,105,105}; // position mains buttons
   uint16_t btMaintamx[10]={60,60, 60, 60, 60, 60, 60, 60,60,60}; // position mains buttons
   uint16_t btMaintamy[10]={30,30, 30, 30, 30, 30, 30, 30,30,30}; // position mains buttons
   uint16_t btMaincol[10]={TFT_RED,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_CYAN,TFT_ORANGE,TFT_YELLOW,TFT_YELLOW};
 
+  //char btFlottext[5][6]={"Ent","Scan-","Scan+","Lock",">MEM"};
   uint16_t btFlotposx[5]={255, 255, 255, 255, 255}; // position Flot buttons
-  uint16_t btFlotposy[5]={140, 91, 61,  210, 175}; // position Flot buttons
-  uint16_t btFlottamx[5]={60,60, 60, 60,60}; // position Flot buttons
-  uint16_t btFlottamy[5]={30,30, 30, 30,30}; // position Flot buttons
+  uint16_t btFlotposy[5]={140, 105, 70,  210, 175}; // position Flot buttons
+  uint16_t btFlottamx[5]={60,60, 60, 60,60}; // tam x Flot buttons
+  uint16_t btFlottamy[5]={30,30, 30, 30,30}; // tam y Flot buttons
 
-  uint16_t btNavposx[5]={0, 32, 54, 76, 98}; // position Nav buttons
-  uint16_t btNavposy[5]={220, 220, 220,  220, 220}; // position Nav buttons
-  uint16_t btNavtamx[5]={60,60, 60, 60,60}; // position Flot buttons
-  uint16_t btNavtamy[5]={30,30, 30, 30,30}; // position Flot buttons
+  //char btNavtext[5][8]={"H","<",">","M","xxx"};
+  uint16_t btNavposx[5]={0, 31, 62, 93, 00}; // position Nav buttons
+  uint16_t btNavposy[5]={210, 210, 210,  210, 210}; // position Nav buttons
+  uint16_t btNavtamx[5]={30, 30, 30, 30, 30}; // tam x Flot buttons
+  uint16_t btNavtamy[5]={30, 30, 30, 30, 30}; // postam yition Flot buttons
 
-  //char btStatext[5][8]={"WiFi","T1","T2","T3","Rst", "H", "M", "S"};
-  uint16_t btStaposx[8]={  0, 165, 195, 225,   0,  0, 128, 192}; // position status buttons
-  uint16_t btStaposy[8]={140, 220, 220, 220, 175,  0, 128, 192}; // position status buttons
-  uint16_t btStatamx[8]={20,   20,  20,  20,  20, 20,  20,  20}; // position Flot buttons
-  uint16_t btStatamy[8]={20,   20,  20,  20,  20, 20,  20,  20}; // position Flot buttons
+  //char btStatext[5][8]={"WiFi","H","M","S","Rst", "T1", "T2", "T3"};
+  uint16_t btStaposx[8]={  0, 164, 195, 223,   0,  124, 145, 166}; // position status buttons
+  uint16_t btStaposy[8]={140, 225, 225, 225, 175,  220, 220, 220}; // position status buttons
+  uint16_t btStatamx[8]={30,   20,  20,  20,  30, 20,  20,  20}; // position Flot buttons
+  uint16_t btStatamy[8]={30,   18,  18,  18,  30, 20,  20,  20}; // position Flot buttons
 #endif
+
 #ifdef PANTALLA40P
   //char btMaintext[10][6] = {"ATU","V/M","Band-","Band+","LSB","CW","RIT","SPL","IFS","ATT"};
   uint16_t btMainposx[10]={ 50, 135, 390, 390,  135,  50, 220, 305, 220, 305}; // position mains buttons
-  uint16_t btMainposy[10]={195, 195,  50,   5,  240, 240, 195, 195, 240, 240}; // position mains buttons
+  uint16_t btMainposy[10]={195, 195,  50,   5,  238, 238, 195, 195, 238, 238}; // position mains buttons
   uint16_t btMaintamx[10]={80, 80, 80, 80, 80, 80, 80, 80, 80, 80}; // position mains buttons
   uint16_t btMaintamy[10]={40, 40, 40, 40, 40, 40, 40, 40, 40, 40}; // position mains buttons
   uint16_t btMaincol[10]={TFT_RED,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_YELLOW,TFT_CYAN,TFT_ORANGE,TFT_YELLOW,TFT_YELLOW};
 
   //char btFlottext[5][6]={"Ent","Scan-","Scan+","Lock",">MEM"};
   uint16_t btFlotposx[5]={390, 390, 390, 390, 390}; // position Flot buttons
-  uint16_t btFlotposy[5]={195, 145,  100, 285, 240}; // position Flot buttons
+  uint16_t btFlotposy[5]={196, 145, 100, 280, 238}; // position Flot buttons
   uint16_t btFlottamx[5]={80,   80,  80,  80,  80}; // tam x Flot buttons
   uint16_t btFlottamy[5]={40,   40,  40,  40,  40}; // tam y Flot buttons
 
   //char btNavtext[5][8]={"H","<",">","M","xxx"};
-  uint16_t btNavposx[5]={0, 32, 64, 96, 128}; // position Nav buttons
-  uint16_t btNavposy[5]={290, 290, 290,  290, 290}; // position Nav buttons
+  uint16_t btNavposx[5]={0, 0, 0, 0, 0}; // position Nav buttons
+  uint16_t btNavposy[5]={280, 195, 238, 153, 0}; // position Nav buttons
   uint16_t btNavtamx[5]={30,30, 30, 30,30}; // tam Nav buttons
   uint16_t btNavtamy[5]={30,30, 30, 30,30}; // tem Nav buttons
 
   //char btStatext[5][8]={"WiFi","H","M","S","Rst", "T1", "T2", "T3"};
-  uint16_t btStaposx[8]={324, 229, 261, 293, 356, 128, 160, 192}; // position status buttons
-  uint16_t btStaposy[8]={290, 300, 300, 300, 290, 290, 290, 290}; // position status buttons
+  uint16_t btStaposx[8]={  0, 289, 321, 353,   0, 188, 220, 252}; // position status buttons
+  uint16_t btStaposy[8]={110, 300, 300, 300, 68, 290, 290, 290}; // position status buttons
   uint16_t btStatamx[8]={ 30,  30,  30,  30,  30,  30,  30,  30}; // position Flot buttons
   uint16_t btStatamy[8]={ 30,  30,  30,  30,  30,  30,  30,  30}; // position Flot buttons
 #endif
@@ -135,7 +139,7 @@ char btMenuNavtext[20][6]={"HOME","USER","RADIO","CW","Wifi",
                            "SMet","CONN","TEMP","PORTS","15",
                             "16","17","18","19","20"};
 
-byte inTx = 0;                //it is set to 1 if in transmit mode (whatever the reason : cw, ptt or cat)
+byte inTx = 0;     //it is set to 1 if in transmit mode (whatever the reason : cw, ptt or cat)
 
 void  initButtons()
 {

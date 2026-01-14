@@ -4,161 +4,163 @@
 // wifi_f.h
 void resetWiFi(void);
 
-typedef struct {    // datos configuración
-  uint8_t LIBRE0;
-  int32_t calibration;
-  unsigned long usbCarrier;
-  unsigned long cwmCarrier;
-  uint8_t splitOn;   //working split, uses VFO B as the transmit frequency                  byte isUSB = 0;   //upper sideband was selected, this is reset to the default for the
-  uint8_t isUSB;     //upper sideband was selected, this is reset to the default for the
-  int cwMode;       //compatible original source, and extend mode //if cwMode == 0, mode check : isUSB, cwMode > 0, mode Check : cwMode
-            //iscwMode = 0 : ssbmode, 1 :cwl, 2 : cwu, 3 : cwn (none tx)
-  unsigned int cwSpeed; //this is actuall the dot period in milliseconds
-  unsigned long cwTimeout;    //milliseconds to go before the cw transmit line is released and the radio goes back to rx mode
-  uint8_t ritOn;
-  uint8_t cwModeA;     // 0: no CW, 1: CW mode
-  uint8_t cwModeB;     // 0: no CW, 1: CW mode
-  uint8_t attLevel;    // ATT : RF Gain Control (Receive) <-- IF1 Shift, 0 : Off, ShiftValue is attLevel * 100; attLevel 150 = 15K
-  uint8_t sdrModeOn;   // SDR MODE ON / OFF
-  int TempAlarm;
-  int TempTxOff;
-  uint8_t framemode;   // 0: analog meter, 1: frames igital meter, 2:spectrum,  3:Frequencies
-  uint8_t frame1mode;  // 0:ATT, 1: data (frame0mode=0)
-  uint8_t frame2mode;  // 0:IFS, 2: data (frame0mode=0)
-  uint8_t frame3mode;  // 0:analog meter (frame0mode=0), 1: bar meter (framemode=1)
-  uint8_t vfoActive;
-  uint8_t isUSBA;        //0:LSB, 1:USB
-  uint8_t isUSBB;        //0:LSB, 1:USB
-  float ATUFactor;         // ATU correction factor
-  float ATUOffset;        // ATU correction offset
-  unsigned long sideTone;
-  uint8_t cwDelayTime;
-  uint8_t delayBeforeCWStartTime;
-  uint8_t SI5351BX_ADDR;        // I2C address of Si5351   (variable from Version 1.097)
-  uint8_t cwKeyType;         //0: straight, 1 : iambica, 2: iambicb
-  uint8_t tuneStepIndex;     //default Value 6, start Offset is 0 because of check new user
-  uint8_t commonOption0;   //0: Confirm : CW Frequency Shift,  1 : IF Shift Save
-  uint8_t addrADS1115A; // dir ADS 1115 module analog converter
-  uint8_t useHamBandCount;  //0 use full range frequency
-  uint8_t tuneTXType;   //0 : use full range, 1 : just Change Dial speed, 2 : just ham band change, but can general band by tune, 3 : only ham band (just support 0, 2 (0.26 version))
-              //100 : use full range but not TX on general band, 101 : just change dial speed but.. 2 : jut... but.. 3 : only ham band  (just support 100, 102 (0.26 version))
-  uint8_t isShiftDisplayCWFreq;  //Display Frequency
-  unsigned int hamBandRange[MAX_BANDS][2];    // =  //Khz because reduce use memory
-  long freqbyband[MAX_BANDS][2];
-  char hamBandName[MAX_BANDS][4];
-  uint8_t connMode;     // 0: IP,  1: Serial2
-  uint8_t serial2Mode;  // 0: Debug,  1: Manager
-  uint8_t timezone;
-  uint8_t modecalsmeter=0;
-  uint8_t LIBRE1[16];
-  int ifShiftValue;   //
-  uint8_t addrADS1115B; // dir ADS 1115 module analog converter
-  uint8_t LIBRE2[6];
-  int squelchval;
-  int ATUIter;
-  uint8_t posATUC1;
-  uint8_t posATUC2;
-  int sMeterLevels[16]={8000,9500,10250,11000,11750,12500,13250,14000,14750,15500,16250,17000,17750,18500,19250,20000};
-  uint8_t ftpenable=1;
-  uint8_t debugenable;
-  uint8_t tcpenable;
-  uint8_t udpenable;
-  uint8_t wsenable;
-  uint8_t seripenable=1;
-  uint8_t webenable=1;
-  uint8_t LIBRE3[6];         // NO USADO, LIBRE
-  uint8_t userCallsignLength;    //7 : display callsign at system startup, 6~0 : callsign length (range : 1~18)
-  char CallSign[20];
-  uint8_t WsprMSGCount;
-  unsigned long frequency;     // frequency is the current frequency on the dial
-  unsigned long frequencyA;   // frequency is the current frequency VFOA
-  unsigned long frequencyB;  // frequency is the current frequency VFOB
-  unsigned long ritRxFrequency;
-  unsigned long ritTxFrequency;
-  uint8_t scaledSMeter;
-  uint8_t wifimode;     // default AP
-  uint8_t canalAP;      // 1 byte, canal ESP en modo AP
-  char ssidSTA[20];      // 20 bytes, SSID en modo STA
-  char passSTA[20];      // 20 bytes, Password en modo STA
-  char ssidAP[20];          // 20 bytes, SSID en modo AP
-  char passAP[20];       // 20 bytes, Password en modo AP
-  IPAddress EEip;   // 4 bytes, dirección IP
-  IPAddress EEgw;     // 4 bytes, puerta de enlace
-  IPAddress EEmask; // 4 bytes, máscara de subred
-  IPAddress EEdns;        // 4 bytes, servidor DNS primario
-  IPAddress EEdns2;       // 4 bytes, servidor DNS secundario
-  char EEmac[6][3];                 // 18 bytes, MAC
-  char myippub[16];              // 16 bytes, dirección IP pública
-  uint8_t staticIP;               // 1 byte, IP estática Sí/No
-  uint8_t LIBRE4[3];                   //
-  unsigned long firstIF;
-  unsigned long arTuneStep[9];
-  float latitud;
-  float longitud;
-  uint8_t lang;                      // 0=español, 1=inglés, 2=francés, 3=alemán
-  uint8_t rstper;
-  uint8_t usepassDev;                // 1 byte, 0 no usar password,  1 usar password
-  uint8_t probecode[maxTemp][8];    // código de sonda
-  char userDev[20];         // 20 bytes, usuario device
-  char passDev[20];         // 20 bytes, password device
-  uint8_t iftttenabled;
-  char iftttkey[30];             // 30 bytes, ifttt key
-  uint8_t iottweetenable;
-  char iottweetuser[10];         // 10 bytes, IoTtweet account user ID
-  char iottweetkey[15];          // 15 bytes, IoTtweet account key
-  uint8_t mqttenabled;
-  char mqttserver[40];           // MQTT broker
-  char mqttpath[6][10];       // MQTT path
-  uint8_t LIBRE9;                 
-  uint8_t LIBRE6;
-  uint8_t LIBRE7[10];             
-  uint8_t LIBRE8;               
-  char hostmyip[30];// 30 bytes, URL del servidor de IP pública
-  uint8_t actualBand;
-  uint8_t autoWiFi;
-  uint8_t scanallf;                  // 0: scan only ham bands, 1:scan all freq.
-  uint8_t TXall;                     // 0; TX only ham bands
-  uint8_t autoMode;                  // switch mode auto
-  uint16_t calData[5];  // calibration TFT touch
-  uint8_t memMode;                   // 0: VFO mode, 1:mem Mode
-  int lastmempos;
-  int scandelay;
-  uint8_t scanmode;          // 0: no stop, 1:resume after delay, 2:stop forever
-  uint8_t Smeterenabled;
-  uint8_t SWRenabled;
-  uint8_t DS18B20enabled;
-  uint8_t ATUZM2enabled;
-  int cwAdcSTFrom;             //CW ADC Range
-  int cwAdcSTTo;
-  int cwAdcDotFrom;
-  int cwAdcDotTo;
-  int cwAdcDashFrom;
-  int cwAdcDashTo;
-  int cwAdcBothFrom;
-  int cwAdcBothTo;
-  uint8_t TPA2016enabled;
-  uint8_t TPA2016Compvalue;
-  uint8_t TPA2016Compmaxgain;
-  uint8_t TPA2016Gain;    // -28 a +30 db
-  char watermark[16]; // código de verificación uBitx
-  char smeterTit[16][4];
-  uint8_t ATUdelay;                 // en segundos
-  uint8_t nprobe[maxTemp];   // estos dos valores van aparejados
-  int ftpPort;
-  int debugPort;
-  int tcpPort;
-  int webPort;
-  int udpPortSmeter;
-  int wsPort;
-  int udpPortFreq;
-  uint8_t LIBRE5[363];                 // Reservados usos futuros
+
+  typedef struct {    // datos configuración
+      uint8_t LIBRE0;
+      int32_t calibration;
+      unsigned long usbCarrier;
+      unsigned long cwmCarrier;
+      uint8_t splitOn;   //working split, uses VFO B as the transmit frequency                  byte isUSB = 0;   //upper sideband was selected, this is reset to the default for the
+      uint8_t isUSB;     //upper sideband was selected, this is reset to the default for the
+      int cwMode;       //compatible original source, and extend mode //if cwMode == 0, mode check : isUSB, cwMode > 0, mode Check : cwMode
+                //iscwMode = 0 : ssbmode, 1 :cwl, 2 : cwu, 3 : cwn (none tx)
+      unsigned int cwSpeed; //this is actuall the dot period in milliseconds
+      unsigned long cwTimeout;    //milliseconds to go before the cw transmit line is released and the radio goes back to rx mode
+      uint8_t ritOn;
+      uint8_t cwModeA;     // 0: no CW, 1: CW mode
+      uint8_t cwModeB;     // 0: no CW, 1: CW mode
+      uint8_t attLevel;    // ATT : RF Gain Control (Receive) <-- IF1 Shift, 0 : Off, ShiftValue is attLevel * 100; attLevel 150 = 15K
+      uint8_t sdrModeOn;   // SDR MODE ON / OFF
+      int TempAlarm;
+      int TempTxOff;
+      uint8_t framemode;   // 0: analog meter, 1: frames igital meter, 2:spectrum,  3:Frequencies
+      uint8_t frame1mode;  // 0:ATT, 1: data (frame0mode=0)
+      uint8_t frame2mode;  // 0:IFS, 2: data (frame0mode=0)
+      uint8_t frame3mode;  // 0:analog meter (frame0mode=0), 1: bar meter (framemode=1)
+      uint8_t vfoActive;
+      uint8_t isUSBA;        //0:LSB, 1:USB
+      uint8_t isUSBB;        //0:LSB, 1:USB
+      float ATUFactor;         // ATU correction factor
+      float ATUOffset;        // ATU correction offset
+      unsigned long sideTone;
+      uint8_t cwDelayTime;
+      uint8_t delayBeforeCWStartTime;
+      uint8_t SI5351BX_ADDR;        // I2C address of Si5351   (variable from Version 1.097)
+      uint8_t cwKeyType;         //0: straight, 1 : iambica, 2: iambicb
+      uint8_t tuneStepIndex;     //default Value 6, start Offset is 0 because of check new user
+      uint8_t commonOption0;   //0: Confirm : CW Frequency Shift,  1 : IF Shift Save
+      uint8_t addrADS1115A; // dir ADS 1115 module analog converter
+      uint8_t useHamBandCount;  //0 use full range frequency
+      uint8_t tuneTXType;   //0 : use full range, 1 : just Change Dial speed, 2 : just ham band change, but can general band by tune, 3 : only ham band (just support 0, 2 (0.26 version))
+                  //100 : use full range but not TX on general band, 101 : just change dial speed but.. 2 : jut... but.. 3 : only ham band  (just support 100, 102 (0.26 version))
+      uint8_t isShiftDisplayCWFreq;  //Display Frequency
+      unsigned int hamBandRange[MAX_BANDS][2];    // =  //Khz because reduce use memory
+      long freqbyband[MAX_BANDS][2];
+      char hamBandName[MAX_BANDS][4];
+      uint8_t connMode;     // 0: IP,  1: Serial2
+      uint8_t serial2Mode;  // 0: Debug,  1: Manager
+      uint8_t timezone;
+      uint8_t modecalsmeter=0;
+      uint8_t LIBRE1[16];
+      int ifShiftValue;   //
+      uint8_t addrADS1115B; // dir ADS 1115 module analog converter
+      uint8_t LIBRE2[6];
+      int squelchval;
+      int ATUIter;
+      uint8_t posATUC1;
+      uint8_t posATUC2;
+      int sMeterLevels[16]={8000,9500,10250,11000,11750,12500,13250,14000,14750,15500,16250,17000,17750,18500,19250,20000};
+      uint8_t ftpenable=1;
+      uint8_t debugenable;
+      uint8_t tcpenable;
+      uint8_t udpenable;
+      uint8_t wsenable;
+      uint8_t seripenable=1;
+      uint8_t webenable=1;
+      uint8_t LIBRE3[6];         // NO USADO, LIBRE
+      uint8_t userCallsignLength;    //7 : display callsign at system startup, 6~0 : callsign length (range : 1~18)
+      char CallSign[20];
+      uint8_t WsprMSGCount;
+      unsigned long frequency;     // frequency is the current frequency on the dial
+      unsigned long frequencyA;   // frequency is the current frequency VFOA
+      unsigned long frequencyB;  // frequency is the current frequency VFOB
+      unsigned long ritRxFrequency;
+      unsigned long ritTxFrequency;
+      uint8_t scaledSMeter;
+      uint8_t wifimode;     // default AP
+      uint8_t canalAP;      // 1 byte, canal ESP en modo AP
+      char ssidSTA[20];      // 20 bytes, SSID en modo STA
+      char passSTA[20];      // 20 bytes, Password en modo STA
+      char ssidAP[20];          // 20 bytes, SSID en modo AP
+      char passAP[20];       // 20 bytes, Password en modo AP
+      IPAddress EEip;   // 4 bytes, dirección IP
+      IPAddress EEgw;     // 4 bytes, puerta de enlace
+      IPAddress EEmask; // 4 bytes, máscara de subred
+      IPAddress EEdns;        // 4 bytes, servidor DNS primario
+      IPAddress EEdns2;       // 4 bytes, servidor DNS secundario
+      char EEmac[6][3];                 // 18 bytes, MAC
+      char myippub[16];              // 16 bytes, dirección IP pública
+      uint8_t staticIP;               // 1 byte, IP estática Sí/No
+      uint8_t LIBRE4[3];                   //
+      unsigned long firstIF;
+      unsigned long arTuneStep[9];
+      float latitud;
+      float longitud;
+      uint8_t lang;                      // 0=español, 1=inglés, 2=francés, 3=alemán
+      uint8_t rstper;
+      uint8_t usepassDev;                // 1 byte, 0 no usar password,  1 usar password
+      uint8_t probecode[maxTemp][8];    // código de sonda
+      char userDev[20];         // 20 bytes, usuario device
+      char passDev[20];         // 20 bytes, password device
+      uint8_t iftttenabled;
+      char iftttkey[30];             // 30 bytes, ifttt key
+      uint8_t iottweetenable;
+      char iottweetuser[10];         // 10 bytes, IoTtweet account user ID
+      char iottweetkey[15];          // 15 bytes, IoTtweet account key
+      uint8_t mqttenabled;
+      char mqttserver[40];           // MQTT broker
+      char mqttpath[6][10];       // MQTT path
+      uint8_t LIBRE9;                 
+      uint8_t LIBRE6;
+      uint8_t LIBRE7[10];             
+      uint8_t LIBRE8;               
+      char hostmyip[30];// 30 bytes, URL del servidor de IP pública
+      uint8_t actualBand;
+      uint8_t autoWiFi;
+      uint8_t scanallf;                  // 0: scan only ham bands, 1:scan all freq.
+      uint8_t TXall;                     // 0; TX only ham bands
+      uint8_t autoMode;                  // switch mode auto
+      uint16_t calData[5];  // calibration TFT touch
+      uint8_t memMode;                   // 0: VFO mode, 1:mem Mode
+      int lastmempos;
+      int scandelay;
+      uint8_t scanmode;          // 0: no stop, 1:resume after delay, 2:stop forever
+      uint8_t Smeterenabled;
+      uint8_t SWRenabled;
+      uint8_t DS18B20enabled;
+      uint8_t ATUZM2enabled;
+      int cwAdcSTFrom;             //CW ADC Range
+      int cwAdcSTTo;
+      int cwAdcDotFrom;
+      int cwAdcDotTo;
+      int cwAdcDashFrom;
+      int cwAdcDashTo;
+      int cwAdcBothFrom;
+      int cwAdcBothTo;
+      uint8_t TPA2016enabled;
+      uint8_t TPA2016Compvalue;
+      uint8_t TPA2016Compmaxgain;
+      uint8_t TPA2016Gain;    // -28 a +30 db
+      char watermark[16]; // código de verificación uBitx
+      char smeterTit[16][4];
+      uint8_t ATUdelay;                 // en segundos
+      uint8_t nprobe[maxTemp];   // estos dos valores van aparejados
+      int ftpPort;
+      int debugPort;
+      int tcpPort;
+      int webPort;
+      int udpPortSmeter;
+      int wsPort;
+      int udpPortFreq;
+      uint8_t LIBRE5[363];                 // Reservados usos futuros
 } conftype;
+
   conftype conf;
   uint8_t *buffconf = (uint8_t *) &conf; // acceder a conf2 como bytes
 
+
 void initConf()
 {
-  conf.LIBRE0=0;  
   conf.calibration=180000;
   conf.usbCarrier=11056000;
   conf.cwmCarrier=11056000;
@@ -183,7 +185,7 @@ void initConf()
   conf.isUSBA=0;        //0:LSB, 1:USB
   conf.isUSBB=1;        //0:LSB, 1:USB
   conf.ATUFactor=0.0;         // ATU correction factor
-  conf.ATUOffset=0.0;        // ATU correction offset 
+  conf.ATUOffset=0.0;         // ATU correction offset 
   conf.sideTone=800;
   conf.cwDelayTime=60;
   conf.delayBeforeCWStartTime=50;
@@ -229,10 +231,8 @@ void initConf()
   conf.connMode=0;     // 0: IP,  1: Serial2
   conf.serial2Mode=0;  // 0: Debug,  1: Manager
   conf.timezone=1;
-  memset(conf.LIBRE1,0,sizeof(conf.LIBRE1));
   conf.ifShiftValue=0;   //
   conf.addrADS1115B=0x49; // dir ADS 1115 module analog converter
-  memset(conf.LIBRE2,0,sizeof(conf.LIBRE2));
   conf.squelchval=45;
   conf.ATUIter=1;
   conf.posATUC1=0;
@@ -253,7 +253,6 @@ void initConf()
   conf.sMeterLevels[13]=13000;
   conf.sMeterLevels[14]=14000;
   conf.sMeterLevels[15]=15000;
-  memset(conf.LIBRE3,0,sizeof(conf.LIBRE3));
   conf.userCallsignLength=0;    //7 : display callsign at system startup, 6~0 : callsign length (range : 1~18)
   strcpy(conf.CallSign,"EA4GZI");
   conf.WsprMSGCount=0;
@@ -284,7 +283,6 @@ void initConf()
   conf.wsenable=0;
   conf.seripenable=0;
   conf.webenable=1;
-  memset(conf.LIBRE4,0,sizeof(conf.LIBRE4));
   conf.firstIF=45005000L;
   conf.arTuneStep[0]=100000000;
   conf.arTuneStep[1]=10000000;
@@ -303,8 +301,6 @@ void initConf()
   memset(conf.probecode,0,sizeof(conf.probecode)); // código de sonda 
   strcpy(conf.userDev,"admin");         // 20 bytes, usuario device
   strcpy(conf.passDev,"admin");         // 20 bytes, password device
-  conf.iftttenabled=0;
-  strcpy(conf.iftttkey,"");             // 30 bytes, ifttt key
   conf.iottweetenable=0;
   strcpy(conf.iottweetuser,"");         // 10 bytes, IoTtweet account user ID
   strcpy(conf.iottweetkey,"");          // 15 bytes, IoTtweet account key
@@ -377,7 +373,7 @@ void initConf()
 void saveconf()
 {
 
-  fs::File auxfile=SPIFFS.open(fileconf, "w+");
+  fs::File auxfile=FFat.open(fileconf, "w+");
   if (auxfile) 
     { 
     int byteswriten=auxfile.write(buffconf,sizeof(conf)); 
@@ -392,23 +388,23 @@ void saveconf()
 
 int readconf() {
   // Verificar si el archivo existe antes de abrirlo
-  if (!SPIFFS.exists("/ubitx.cnf")) {
+  if (!FFat.exists("/ubitx.cnf")) {
     return 2;  // O crear el archivo si es necesario
     }
   // Intentar abrir el archivo para lectura
-  fs::File auxfile = SPIFFS.open("/ubitx.cnf", "r");
+  fs::File auxfile = FFat.open("/ubitx.cnf", "r");
   if (!auxfile) {
     return 3;  // Error al abrir el archivo
     }
 
   // Leer los datos del archivo
   int bytesread = auxfile.read(buffconf, sizeof(conf));
-  s2("  Leidos "); s2(bytesread); s2(" de "); s2(sizeof(conf)); s2(crlf);
+  s2(" Leidos "); s2(bytesread); s2(" de "); s2(sizeof(conftype)); s2(crlf);
   if (bytesread != sizeof(conf)) {
     s2("  ERROR leyendo fichero\n");
     return 4;
     }
-  auxfile.close();  // No olvidar cerrar el archivo
+  auxfile.close(); 
   return 0;
 }
 

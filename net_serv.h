@@ -3,28 +3,24 @@
 
 void initWS();
 
-#include <FTPServer.h>
+#include <MultiFTPServer.h>
 #include <WebServer.h>
 #include <Update.h>
 #include <NTPClient.h>                // Local
 
 #ifdef FTPSERVER
-  FTPServer ftpSrv(SPIFFS);
+  FtpServer ftpSrv;
 #endif
 
 void initFTP() { 
   #ifdef FTPSERVER
-  ftpSrv.begin("admin","admin"); 
+    ftpSrv.begin("admin","admin"); 
   #endif
   }  
 
 #ifdef NTPCLIENT
   WiFiUDP ntpUDP;
   NTPClient timeClient(ntpUDP, "europe.pool.ntp.org");
-#endif
-
-#ifdef UDPSERVER
-  WiFiUDP udpsmeter, udpfreq;
 #endif
 
 void initupdateserver()
@@ -67,29 +63,6 @@ void initupdateserver()
 void initWebserver() { 
   server.begin(); 
   } 
-
-void initUDPS()
-{
-  /*
-  if(udp.listen(udpPort)) {
-    s2("UDP Listening on IP: ");  s2(WiFi.localIP());
-    udp.onPacket([](AsyncUDPPacket packet) {
-      //printhora();
-      s2("UDP Packet Type: ");
-      s2(packet.isBroadcast()?"Broadcast":packet.isMulticast()?"Multicast":"Unicast");
-      s2(", From: "); s2(packet.remoteIP());
-      s2(":"); s2(packet.remotePort());
-      s2(", To: ");  s2(packet.localIP());
-      s2(":");  s2(packet.localPort());
-      s2(", Length: "); s2(packet.length());
-      s2(", Data: "); Serial2.write(packet.data(), packet.length());
-      S2(crlf);
-      //reply to the client
-      packet.printf("Got %u bytes of data", packet.length());
-      });
-    }
-    */
-}
 
 int checkInternet()
 {
@@ -184,13 +157,6 @@ void initNetServices()
     else
       s2("disabled\n");
 
-    if (conf.udpenable) { 
-      initUDPS(); 
-      s2("  UDP server ");
-      s2("S iniciado en puerto "); s2(conf.udpPortSmeter); 
-      s2(", F iniciado en puerto \n"); s2(conf.udpPortFreq); }
-    else
-      s2("disabled\n");
     }
 
   if ((conf.wifimode==1) || (conf.wifimode==3))  // STA o AP+STA

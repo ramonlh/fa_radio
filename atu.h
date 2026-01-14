@@ -1,14 +1,16 @@
 
+#include <ESP32Servo.h>  // Usa esta librería
+
+//#ifdef SERVO
+  Servo cap1, cap2;
+//#endif
+
 #pragma once
+#include "display.h"
 
 // display.h
 uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue, int incStep, const char* Title, int Sensitivity);
 
-#include <ESP32_Servo.h>
-
-#ifdef SERVO
-  Servo cap1, cap2;
-#endif
 
 void setupATU(uint8_t C) {
   if (C==1) { 
@@ -23,6 +25,15 @@ void setupATU(uint8_t C) {
 
 void initATU()
 {
+#ifdef UBITX_RADIO
+#endif
+#ifdef FA_RADIO
+  cap1.setPeriodHertz(50);           // Establecer frecuencia PWM para servo (50 Hz)
+  cap1.attach(TX_LPF_A, 500, 2400);        // Pin GPIO, ancho de pulso mínimo y máximo en microsegundos
+  cap2.setPeriodHertz(50);           // Establecer frecuencia PWM para servo (50 Hz)
+  cap2.attach(TX_LPF_B, 500, 2400);        // Pin GPIO, ancho de pulso mínimo y máximo en microsegundos
+#endif
+
   // Allow allocation of all timers
   //ESP32PWM::allocateTimer(0);
   //ESP32PWM::allocateTimer(1);
@@ -36,9 +47,11 @@ void initATU()
   //cap2.write(conf.posATUC2);
 }
 
+int posmin1, posmin2;
+
 void acopla()
 {
-  /*
+
   clearTFT();
   s2("Tunning"); s2(crlf);
   // cap1
@@ -47,9 +60,9 @@ void acopla()
   delay(500);
   swrmin=999; posmin1=180; 
   for (int i=180; i>0; i--) {   // goes from 0 degrees to 180 degrees
-    SWR=readSWR(0);
-    displaySWR2();
-  //  displaySWR(1);
+    //SWR=readSWR(0);
+    //displaySWR2();
+    displaySWR(1);
     cap1.write(i);              // tell servo to go to position in variable 'pos'
     if (SWRreal<swrmin) 
       { 
@@ -64,9 +77,9 @@ void acopla()
   // cap 2
   swrmin=999; posmin2=180;
   for (int i=180; i>0; i--) {   // goes from 0 degrees to 180 degrees
-    SWR=readSWR(0);
-    displaySWR2();  
-//    displaySWR(1);
+    //SWR=readSWR(0);
+    //displaySWR2();  
+    displaySWR(1);
     cap2.write(i);              // tell servo to go to position in variable 'pos'
     if (SWRreal<swrmin) 
       { 
@@ -79,6 +92,5 @@ void acopla()
   saveconf();
   cap2.write(conf.posATUC2);            // tell servo to go to position in variable 'pos'
   delay(500);
-  */
 }
 

@@ -1,6 +1,10 @@
 
 #pragma once
 
+#include "atu.h"
+void acopla();
+
+
 // ws_server
 void sendwsData(uint8_t c);
 // funciones externas
@@ -95,12 +99,11 @@ void displayTime()
   char auxh[3]=""; if (hour()<10) strcpy(auxh,"0"); strcat(auxh,itoa(hour(),buff,10)); 
   char auxm[3]=""; if (minute()<10) strcpy(auxm,"0"); strcat(auxm,itoa(minute(),buff,10)); 
   char auxs[3]=""; if (second()<10) strcpy(auxs,"0"); strcat(auxs,itoa(second(),buff,10));
-  btSta[1].initButtonUL(&tft,btStaposx[1],btStaposy[1],30,18,2,TFT_BLACK,TFT_WHITE,auxh,2);
-  btSta[2].initButtonUL(&tft,btStaposx[2],btStaposy[2],30,18,2,TFT_BLACK,TFT_WHITE,auxm,2);
-  btSta[3].initButtonUL(&tft,btStaposx[3],btStaposy[3],30,18,2,TFT_BLACK,TFT_WHITE,auxs,2);
-  btSta[1].drawButton();
-  btSta[2].drawButton();
-  btSta[3].drawButton();
+  for (int i=1;i<4;i++)
+    {
+    btSta[i].initButtonUL(&tft,btStaposx[i],btStaposy[i],btStatamx[i],btStatamy[i],1,TFT_BLACK,TFT_WHITE,auxh,2);
+    btSta[i].drawButton();
+    }
   tft.setTextSize(2);  tft.setTextColor(TFT_WHITE);
   tft.setTextDatum(ML_DATUM);     // izquierda
 }
@@ -111,17 +114,9 @@ void displayTemp()
   tft.setTextDatum(MR_DATUM);     // derecha
   tft.setTextColor(TFT_WHITE);
   for (int i=5; i<=7; i++) {
-    btSta[i].initButtonUL(&tft,btStaposx[i],btStaposy[i],30,30,2,MbR[i-5]>4000?TFT_ORANGE:MbR[i-5]>4500?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[i-5]/100,buff,10),1);
+    btSta[i].initButtonUL(&tft,btStaposx[i],btStaposy[i],btStatamx[i],btStatamy[i],2,MbR[i-5]>4000?TFT_ORANGE:MbR[i-5]>4500?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[i-5]/100,buff,10),1);
     btSta[i].drawButton();
     }
-    /*
-  btSta[5].initButtonUL(&tft,btStaposx[5],btStaposy[5],30,30,2,MbR[0]>4000?TFT_ORANGE:MbR[0]>4500?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[0]/100,buff,10),1);
-  btSta[5].drawButton();
-  btSta[6].initButtonUL(&tft,btStaposx[6],btStaposy[6],30,30,2,MbR[1]>4000?TFT_ORANGE:MbR[1]>4500?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[1]/100,buff,10),1);
-  btSta[6].drawButton();
-  btSta[7].initButtonUL(&tft,btStaposx[7],btStaposy[7],30,30,2,MbR[2]>4500?TFT_ORANGE:MbR[2]>5000?TFT_RED:TFT_GREEN,TFT_BLACK,itoa(MbR[2]/100,buff,10),1);
-  btSta[7].drawButton();
-  */
   tft.setTextDatum(ML_DATUM);     // izquierda
 }
 
@@ -138,7 +133,7 @@ void displayStatus()
 {
   displayTime();
   displayTemp();
-  displayVI(20 ,50, 175);
+  displayVI(20, 60, 300);
 }
 
 void displayMain()
@@ -159,9 +154,10 @@ void displayNav()   // botones navegación
   strcpy(btNavtext[1],tftpage==22?"Ed":"<");
   strcpy(btNavtext[2],tftpage==22?"Ok":">");
   strcpy(btNavtext[3],"M");
-  btNav[0].initButtonUL(&tft,btNavposx[0],btNavposy[0],btNavtamx[0],btNavtamy[0],2,TFT_WHITE,TFT_BLACK,btNavtext[0],2);
-  btNav[0].drawButton();
-  for (uint8_t i=1;i<5;i++) if (btNavact[i]==1)
+  #ifdef PANTALLA28P
+   strcpy(btNavtext[3],"x");    
+  #endif
+  for (uint8_t i=0;i<5;i++) if (btNavact[i]==1)
     {
     btNav[i].initButtonUL(&tft,btNavposx[i],btNavposy[i],btNavtamx[i],btNavtamy[i],2,TFT_WHITE,TFT_BLACK,btNavtext[i],2);
     btNav[i].drawButton();
@@ -205,7 +201,7 @@ void displayneedle(int value,int xcen,int ycen,int rad,int min,int max,int angle
   xant=x; yant=y;
 }
 
-void displaygauge(byte tipo,int value,int xcen,int ycen,int rad,byte fondo,int min,int max,int angle,int ndiv)
+void displaygauge_ubitx(byte tipo,int value,int xcen,int ycen,int rad,byte fondo,int min,int max,int angle,int ndiv)
 {
   displayneedle(value,xcen,ycen,rad,min,max,angle);
   if (angle>180) angle=180; if (value<min) value=min; if (value>max) value=max;
@@ -229,15 +225,19 @@ void displaygauge(byte tipo,int value,int xcen,int ycen,int rad,byte fondo,int m
       tft.drawLine(x-5*auxcos,y+5*auxsin,x,y,colorline);
       tft.drawLine(x-5*auxcos+1,y+5*auxsin,x+1,y,colorline);
       tft.setTextColor(textcol, backcol); tft.setTextSize(rad<100?1:2);
-      if (tipo==0) { tft.drawNumber(min+(max-min)*i/ndiv, x-5+5*auxcos, y-10); }     // generic
+      if (tipo==0) { 
+        tft.drawNumber(min+(max-min)*i/ndiv, x-5+5*auxcos, y-10); }     // generic
       else if (tipo==1)   // smeter
         { 
         if (calSmeterReq) tft.setTextColor(TFT_RED, backcol);  
         tft.drawString(conf.smeterTit[i], x+(rad/8)*auxcos, y-rad*auxsin/5); 
         }
-      else if (tipo==2) { tft.drawNumber(min+i,x+(rad/10)*auxcos, y-rad*auxsin/8); } // SWR
-      else if (tipo==3) { tft.drawNumber(i*15,x+(rad/10)*auxcos, y-rad*auxsin/8); }  // CAP1 & CAP2
-      else if (tipo==5) { tft.drawString(conf.smeterTit[i],x+(rad/10)*auxcos, y-rad*auxsin/8); }  // adjust squelch level 
+      else if (tipo==2) { 
+        tft.drawNumber(min+i,x+(rad/10)*auxcos, y-rad*auxsin/8); } // SWR
+      else if (tipo==3) { 
+        tft.drawNumber(i*15,x+(rad/10)*auxcos, y-rad*auxsin/8); }  // CAP1 & CAP2
+      else if (tipo==5) { 
+        -tft.drawString(conf.smeterTit[i],x+(rad/10)*auxcos, y-rad*auxsin/8); }  // adjust squelch level 
       }   
   if (tipo==1)    // S-meter
     {
@@ -260,31 +260,126 @@ void displaygauge(byte tipo,int value,int xcen,int ycen,int rad,byte fondo,int m
     { tft.drawString("SWR",x0+3,y0+10); }   
 }
 
-void displaySmeter(int x, int y, int r, byte fondo)
+void displaygauge_FA(byte tipo,int value,int xcen,int ycen,int rad,byte fondo,int min,int max,int angle,int ndiv)
 {
-  displaygauge(1,smetervalue,x,y,r,fondo,0,90,90,15);
+  displayneedle(value,xcen,ycen,rad,min,max,angle);
+  if (angle>180) angle=180; if (value<min) value=min; if (value>max) value=max;
+  int x0=rad>=100?0:xcen-rad*7/6; 
+  int y0=rad>100?0:ycen-rad*7/5;
+  int wx=rad>100?320:rad*7/3;
+  int wy=rad>100?240:rad*3/2;
+  tft.drawRect(x0,y0,wx,wy,textcol);
+  tft.fillCircle(xcen,ycen,2,needlecol);
+  int dgrdiv=angle/ndiv;      // grados por división
+  for (byte i=0; i<ndiv+1;i++) 
+    if (i%2==0)
+      {
+      int dgr=(90+angle/2)-dgrdiv*i;
+      float drad=dgr*degtoradf;
+      float auxcos=cos(drad);
+      float auxsin=sin(drad);
+      int x=xcen+(rad*(rad>100?9:10)/10)*auxcos;
+      int y=ycen-(rad*(rad>100?9:10)/10)*auxsin;
+      int colorline=value==conf.squelchval?TFT_WHITE:TFT_YELLOW;
+      tft.drawLine(x-5*auxcos,y+5*auxsin,x,y,colorline);
+      tft.drawLine(x-5*auxcos+1,y+5*auxsin,x+1,y,colorline);
+      tft.setTextColor(textcol, backcol); tft.setTextSize(rad<100?1:2);
+      if (tipo==0) { 
+        tft.drawNumber(min+(max-min)*i/ndiv, x-5+5*auxcos, y-10); }     // generic
+      else if (tipo==1)   // smeter
+        { 
+        if (calSmeterReq) tft.setTextColor(TFT_RED, backcol);  
+        tft.drawString(conf.smeterTit[i], x+(rad/8)*auxcos, y-rad*auxsin/5); 
+        }
+      else if (tipo==2) { 
+        tft.drawNumber(min+i,x+(rad/10)*auxcos, y-rad*auxsin/8); } // SWR
+      else if (tipo==3) { 
+        tft.drawNumber(i*15,x+(rad/10)*auxcos, y-rad*auxsin/8); }  // CAP1 & CAP2
+      else if (tipo==5) { 
+        -tft.drawString(conf.smeterTit[i],x+(rad/10)*auxcos, y-rad*auxsin/8); }  // adjust squelch level 
+      }   
+  if (tipo==1)    // S-meter
+    {
+    char auxC[4]="OFF";
+    if (conf.scanmode==1) 
+      {
+      strcpy(auxC,"SR"); 
+      
+      }
+    else if (conf.scanmode==2)
+      {
+      strcpy(auxC,"St");  
+      }
+    btSmeter[0].initButtonUL(&tft,xcen-(rad+7),ycen-16,30,20,2,conf.scanmode==0?TFT_LIGHTGREY:conf.scanmode==1?TFT_GREEN:TFT_ORANGE,TFT_BLACK,auxC,1);
+    btSmeter[0].drawButton();
+    btSmeter[1].initButtonUL(&tft,xcen+rad-23,ycen-16,30,20,2,TFT_ORANGE,TFT_BLACK,"Lev.",1);
+    btSmeter[1].drawButton();
+    }
+  else if (tipo==2)  // SWR
+    { tft.drawString("SWR",x0+3,y0+10); }   
+}
+
+void displaygauge(byte tipo,int value,byte fondo,int min,int max,int angle,int ndiv)
+{
+#ifdef UBITX_RADIO
+  displaygauge_ubitx(tipo,value,180,200,50,fondo,min,max,angle,ndiv);
+#endif
+#ifdef FA_RADIO
+  displaygauge_FA(tipo,value,295,175,75,fondo,min,max,angle,ndiv);
+#endif
+}
+
+void displaySmeter(byte fondo)
+{
+  displaygauge(1,smetervalue,fondo,0,90,90,15);
 }
 
 void displaysetupSmeter()
 {
   for (byte i=0;i<5;i++) if (btSmeact[i]==1)
     {
-    btSME[i].initButtonUL(&tft,0,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btSmetext[i],2);
+    btSME[i].initButtonUL(&tft,50,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btSmetext[i],2);
     btSME[i].drawButton();
     }
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("10 - S-Meter Settings",0,0);
-  tft.drawNumber(conf.sMeterLevels[0],180,40);
-  tft.drawNumber(conf.sMeterLevels[15],180,75);
+  tft.drawString("10 - S-Meter Settings",50,0);
+  tft.drawNumber(conf.sMeterLevels[0],230,40);
+  tft.drawNumber(conf.sMeterLevels[15],230,75);
 
-  tft.drawNumber(minsmeter,0,110);
-  tft.drawString("<--->",130,110);
-  tft.drawNumber(maxsmeter,250,110);
+  tft.drawNumber(minsmeter,50,110);
+  tft.drawString("<--->",230,110);
+  tft.drawNumber(maxsmeter,300,110);
 }
 
 int ifShiftValueant=0;
 
-void displayIFS(byte tam,int x, int y)
+void displayIFS_ubitx(byte tam,int x, int y)
+{
+ tft.setTextDatum(TL_DATUM);     // izquierda
+  if (tam==0)   // tamaño pequeño
+    {
+    int auxvalue=conf.ifShiftValue/160+12;
+    for (byte i=0; i<25; i++)
+      {
+      tft.fillRect(x+i*3,y,2,10,(auxvalue>=i-1)&&(auxvalue<=i+1)?conf.ifShiftValue!=0?TFT_CYAN:TFT_LIGHTGREY:TFT_ORANGE);
+      }
+    tft.setTextSize(1); tft.setTextColor(TFT_WHITE);
+    tft.drawString("IFS",x,y-7);
+    tft.drawNumber(conf.ifShiftValue,x+30,y-7);
+    }
+  else      // tamaño grande
+    {
+    int auxvalue=conf.ifShiftValue/40+50;
+    for (byte i=0; i<100; i++)
+      {
+      tft.fillRect(10+i*3,50,2,0,(auxvalue>=i-1) && (auxvalue<=i+1)?TFT_CYAN:TFT_ORANGE);
+      }
+    tft.drawRect(156,45,10,4,TFT_CYAN);
+    tft.drawRect(156,81,10,4,TFT_CYAN);
+    }
+}
+
+void displayIFS_FA(byte tam,int x, int y)
 {
  tft.setTextDatum(TL_DATUM);     // izquierda
  if (tam==0)   // tamaño pequeño
@@ -297,6 +392,7 @@ void displayIFS(byte tam,int x, int y)
     tft.setTextSize(2); tft.setTextColor(TFT_WHITE);
     tft.drawString("IFS",x-40,y+5);
     tft.drawNumber(conf.ifShiftValue,x+80,y+5);
+    tft.drawString("Hz",x+100,y+5);
     }
   else      // tamaño grande
     {
@@ -309,6 +405,16 @@ void displayIFS(byte tam,int x, int y)
     tft.drawRect(x,y,10,4,TFT_CYAN);
     tft.drawRect(x,y+30,10,4,TFT_CYAN);
     }
+}
+
+void displayIFS(byte tam)
+{
+#ifdef UBITX_RADIO
+  displayIFS_ubitx(tam, 35, 190);
+#endif
+#ifdef FA_RADIO
+  displayIFS_FA(tam, 90, 130);
+#endif
 }
 
 void displayWiFiSt()
@@ -386,20 +492,25 @@ void displayFreqs()
   tft.drawString("Cal",160,193); drawNumberB(conf.calibration,215,180,100,22,TFT_BLACK,TFT_WHITE,2); 
 }
 
-uint16_t smeterx=295;
-uint16_t smetery=175;
-uint16_t smetertam=75;
+void displayATT_ubitx(byte tam, int x, int y)
+{
+  tft.setTextDatum(TL_DATUM);     // izquierda
+  if (tam==0)   // pequeño
+    {
+    for (byte i=0; i<25;i++)
+      tft.fillRect(x+i*3,y, 2, 10, conf.attLevel*60/250>i*3?conf.attLevel!=0?TFT_CYAN:TFT_LIGHTGREY:TFT_ORANGE);
+    tft.setTextSize(1); tft.setTextColor(TFT_WHITE);
+    tft.drawString("ATT",x,y-7);
+    tft.drawNumber(conf.attLevel,x+30,y-7);
+    }
+  else    // grande
+    {
+    for (byte i=0; i<25;i++)
+      tft.fillRect(35+i*10,50, 9, 30, conf.attLevel>i*10?conf.attLevel!=0?TFT_CYAN:TFT_LIGHTGREY:TFT_ORANGE);
+    }
+}
 
-uint16_t ifsx=90;
-uint16_t ifsy=150;
-uint16_t ifstam=20;
-
-uint16_t attx=90;
-uint16_t atty=120;
-uint16_t atttam=20;
-
-
-void displayATT(byte tam, int x, int y)
+void displayATT_FA(byte tam, int x, int y)
 {
   tft.setTextDatum(TL_DATUM);     // izquierda
   if (tam==0)   // pequeño
@@ -409,6 +520,7 @@ void displayATT(byte tam, int x, int y)
     tft.setTextSize(2); tft.setTextColor(TFT_WHITE);
     tft.drawString("ATT", x-40, y+5);
     tft.drawNumber(conf.attLevel, x+80, y+5);
+    tft.drawString("db", x+100, y+5);
     }
   else    // grande
     {
@@ -417,7 +529,99 @@ void displayATT(byte tam, int x, int y)
     }
 }
 
-void displayFreq(byte fast, byte fA, byte fB, byte fAux)
+void displayATT(byte tam)
+{
+#ifdef UBITX_RADIO
+  displayATT_ubitx(tam, 35, 150);
+#endif
+#ifdef FA_RADIO
+  displayATT_FA(tam, 90, 130);
+#endif
+}
+
+void displayFreq_ubitx(byte fast, byte fA, byte fB, byte fAux)
+{
+  if ((tftpage>0) && (tftpage!=22)) return;
+  char freqpart[9][4]={"","","","","","","","",""};
+  char freqpartSec[9][4]={"","","","","","","","",""};
+  unsigned long f=conf.frequency;
+  unsigned long fsec;
+  int16_t colf;
+  if (conf.ritOn==1) colf=TFT_CYAN; else if (conf.splitOn==1) colf=TFT_ORANGE; else colf=TFT_GREEN;
+  if (conf.ritOn==1) fsec=conf.ritTxFrequency;
+  else if (conf.splitOn==1) fsec=conf.frequencyB;
+  else fsec=conf.vfoActive==VFO_A?conf.frequencyB:conf.frequencyA;
+  for (byte i=0;i<9;i++)    // separa cifras
+    {
+    long auxL=long(pow(10,8-i));
+    if ((i==0)&&(f<100000000)) strcat(freqpart[i]," "); 
+    else if ((i==1)&&(f<10000000)) strcat(freqpart[i]," "); 
+    else strcat(freqpart[i],itoa((f/auxL)%10,buff,10));
+    if ((i==0)&&(fsec<100000000)) strcat(freqpartSec[i]," "); 
+    else if ((i==1)&&(fsec<10000000)) strcat(freqpartSec[i]," "); 
+    else strcat(freqpartSec[i],itoa((fsec/auxL)%10,buff,10));
+    }
+  tft.setTextSize(2); tft.setTextColor(colf);
+  tft.setTextDatum(ML_DATUM);
+  char auxchar[2][5]={"A","B"};
+  
+  if (fAux==1)
+    {
+    if (conf.vfoActive==VFO_B) { strcpy(auxchar[0],"B"); strcpy(auxchar[1],"A"); }
+    btVFO[1].initButtonUL(&tft,0,0,20,20,2,TFT_BLACK,colf,auxchar[1],2);
+    btVFO[1].drawButton();
+    if ((conf.ritOn==1) || (conf.splitOn==1))
+      {
+      tft.drawString("TX",21,0);
+      if (conf.splitOn==1) tft.drawString(conf.isUSBB==0?"LSB":"USB",80,0);
+      }
+    else if ((conf.ritOn==0) && (conf.splitOn==0))
+      {
+      tft.setTextColor(TFT_BLACK);
+      tft.drawString("TX",21,0);
+      if (conf.vfoActive==VFO_A)
+        {
+        tft.drawString(conf.cwModeB==0?"   ":"CW-",45,0);
+        tft.drawString(conf.isUSBB==0?"LSB":"USB",80,0);
+        }
+      else
+        {
+        tft.drawString(conf.cwModeA==0?"   ":"CW-",45,0);
+        tft.drawString(conf.isUSBA==0?"LSB":"USB",80,0);
+        }
+      }
+  
+    }
+  if (fB==1)
+    {
+    for (byte i=0;i<9;i++)    // frecuencia secundaria 
+      {
+      btFreqTx[i].initButtonUL(&tft,140+12*i,0,12,20,2,TFT_BLACK,colf,freqpartSec[i],2);
+      btFreqTx[i].drawButton();
+      }
+    tft.fillCircle(173,14,1,colf);    // punto de miles
+    btVFO[0].initButtonUL(&tft,0,30,30,30,2,TFT_BLACK,TFT_WHITE,auxchar[0],3);
+    btVFO[0].drawButton();
+    }
+
+  if (fA==1)
+    {
+    for (byte i=0;i<9;i++)      // frecuencia principal  ping 192.168.1.149
+    
+      {
+      if ((fast==0) || (strcmp(freqpartant[i],freqpart[i]) != 0))    // son diferentes
+        {
+        strcpy(freqpartant[i],freqpart[i]);
+        if (i<6) btFreq[i].initButtonUL(&tft,35+26*i,30,26,40,2,TFT_BLACK,conf.tuneStepIndex==i?TFT_YELLOW:TFT_WHITE,freqpart[i],4);
+        else btFreq[i].initButtonUL(&tft,71+20*i,38,20,30,2,TFT_BLACK,conf.tuneStepIndex==i?TFT_YELLOW:TFT_WHITE,freqpart[i],3);
+        btFreq[i].drawButton();
+        }
+      }
+    tft.fillCircle(110,62,2,TFT_WHITE);    // punto de miles
+    }
+}
+
+void displayFreq_FA(byte fast, byte fA, byte fB, byte fAux)
 {
   tft.setTextDatum(TL_DATUM);     // izquierda
   if ((tftpage>0) && (tftpage!=22)) return;
@@ -501,21 +705,31 @@ void displayFreq(byte fast, byte fA, byte fB, byte fAux)
     }
 }
 
+void displayFreq(byte fast, byte fA, byte fB, byte fAux)
+{
+#ifdef UBITX_RADIO
+  displayFreq_ubitx(fast, fA, fB, fAux);
+#endif
+#ifdef FA_RADIO
+  displayFreq_FA(fast, fA, fB, fAux);
+#endif
+}
+
 void displayUSERSet()
 {
   // botones setting
   for (byte i=0;i<5;i++) if (btSetact[i]==1)
     {
-    btSet[i].initButtonUL(&tft,0,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btSettext[i],2);
+    btSet[i].initButtonUL(&tft,50,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btSettext[i],2);
     btSet[i].drawButton();
     }
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("1 - USER setting",0,0);
-  tft.drawString(conf.lang==0?"Español":"English",180,40);
-  tft.drawString(conf.CallSign,180,75);
-  tft.drawNumber(conf.latitud,180,110);
-  tft.drawNumber(conf.longitud,180,145);
-  tft.drawString(timezonetext[conf.timezone],180,180);
+  tft.drawString("1 - USER setting",50,0);
+  tft.drawString(conf.lang==0?"Español":"English",230,40);
+  tft.drawString(conf.CallSign,230,75);
+  tft.drawNumber(conf.latitud,230,110);
+  tft.drawNumber(conf.longitud,230,145);
+  tft.drawString(timezonetext[conf.timezone],230,180);
 }
 
 void displaySetRad()
@@ -526,16 +740,16 @@ void displaySetRad()
     {
     if (i==1) backcolor=conf.autoMode==1?TFT_YELLOW:TFT_WHITE;
     else backcolor=TFT_WHITE;
-    btSetRad[i].initButtonUL(&tft,0,35*i+30,160,30,2,backcolor,TFT_BLACK,btSetRadtext[i],2);
+    btSetRad[i].initButtonUL(&tft,50,35*i+30,160,30,2,backcolor,TFT_BLACK,btSetRadtext[i],2);
     btSetRad[i].drawButton();
     }
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("2 - RADIO Setup",0,0);
-  tft.drawString(conf.TXall==0?"Ham Bands":"All Range",180,40);
-  tft.drawString(conf.autoMode==0?"NO":"YES",180,75);
-  tft.drawString(conf.scanallf==0?"Ham Bands":"All Range",180,110);
-  tft.drawString(conf.scanmode==0?"No Stop":conf.scanmode==1?"Stop-Resume":"Stop",180,145);
-  tft.drawNumber(conf.scandelay,180,180);
+  tft.drawString("2 - RADIO Setup",50,0);
+  tft.drawString(conf.TXall==0?"Ham Bands":"All Range",230,40);
+  tft.drawString(conf.autoMode==0?"NO":"YES",230,75);
+  tft.drawString(conf.scanallf==0?"Ham Bands":"All Range",230,110);
+  tft.drawString(conf.scanmode==0?"No Stop":conf.scanmode==1?"Stop-Resume":"Stop",230,145);
+  tft.drawNumber(conf.scandelay,230,180);
 }
 
 void displayCWSet()
@@ -543,37 +757,37 @@ void displayCWSet()
   // botones setting
   for (byte i=0;i<5;i++) if (btCWact[i]==1)
     {
-    btCW[i].initButtonUL(&tft,0,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btCWtext[i],2);
+    btCW[i].initButtonUL(&tft,50,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btCWtext[i],2);
     btCW[i].drawButton();
     }
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("3 - CW setting",0,0);
-  tft.drawString(keytypetext[conf.cwKeyType],180,40);
-  tft.drawNumber(1200/conf.cwSpeed,180,75);
-  tft.drawNumber(conf.sideTone,180,110);
-  tft.drawNumber(conf.cwDelayTime,180,145);
-  tft.drawNumber(conf.delayBeforeCWStartTime,180,180);
+  tft.drawString("3 - CW setting",50,0);
+  tft.drawString(keytypetext[conf.cwKeyType],230,40);
+  tft.drawNumber(1200/conf.cwSpeed,230,75);
+  tft.drawNumber(conf.sideTone,230,110);
+  tft.drawNumber(conf.cwDelayTime,230,145);
+  tft.drawNumber(conf.delayBeforeCWStartTime,230,180);
 }
 
 void displayNet()
 {
   // botones setting Net
-  btNet[0].initButtonUL(&tft,0,35*0+30,160,30,2,conf.autoWiFi==1?TFT_YELLOW:TFT_WHITE,TFT_BLACK,btNettext[0],2);
+  btNet[0].initButtonUL(&tft,50,35*0+30,160,30,2,conf.autoWiFi==1?TFT_YELLOW:TFT_WHITE,TFT_BLACK,btNettext[0],2);
   btNet[0].drawButton();
   for (byte i=1;i<4;i++) if (btNetact[i]==1)
     {
-    btNet[i].initButtonUL(&tft,0,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btNettext[i],2);
+    btNet[i].initButtonUL(&tft,50,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btNettext[i],2);
     btNet[i].drawButton();
     }
-  btNet[4].initButtonUL(&tft,0,35*4+30,160,30,2,conf.staticIP==1?TFT_YELLOW:TFT_WHITE,TFT_BLACK,btNettext[4],2);
+  btNet[4].initButtonUL(&tft,50,35*4+30,160,30,2,conf.staticIP==1?TFT_YELLOW:TFT_WHITE,TFT_BLACK,btNettext[4],2);
   btNet[4].drawButton();
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("4 - WiFi setting",0,0);
-  tft.drawString(conf.autoWiFi==1?"YES":"NO",180,40);
-  tft.drawString(conf.ssidSTA,180,75);
-  tft.drawString(conf.passSTA,180,110);
-  tft.drawString(wifimodetext[conf.wifimode],180,145);
-  tft.drawString(conf.staticIP==1?itoa(conf.EEip[3],buff,10):"NO",180,180);
+  tft.drawString("4 - WiFi setting",50,0);
+  tft.drawString(conf.autoWiFi==1?"YES":"NO",230,40);
+  tft.drawString(conf.ssidSTA,230,75);
+  tft.drawString(conf.passSTA,230,110);
+  tft.drawString(wifimodetext[conf.wifimode],230,145);
+  tft.drawString(conf.staticIP==1?itoa(conf.EEip[3],buff,10):"NO",230,180);
 }
 
 void displayCal()
@@ -581,50 +795,50 @@ void displayCal()
   // botones setting
   for (byte i=0;i<5;i++) if (btCalact[i]==1)
     {
-    btCAL[i].initButtonUL(&tft,0,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btCaltext[i],2);
+    btCAL[i].initButtonUL(&tft,50,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btCaltext[i],2);
     btCAL[i].drawButton();
     }
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("5 - ADJUST",0,0);
-  tft.drawNumber(conf.calibration,180,40);
-  tft.drawNumber(conf.usbCarrier,180,75);
-  tft.drawNumber(conf.SI5351BX_ADDR,180,110);
+  tft.drawString("5 - ADJUST",50,0);
+  tft.drawNumber(conf.calibration,230,40);
+  tft.drawNumber(conf.usbCarrier,230,75);
+  tft.drawNumber(conf.SI5351BX_ADDR,230,110);
 }
 
 void displayKEYERSet()    // botones KEYER setting
 {
   for (byte i=0;i<4;i++) 
     {
-    btKEYER[i].initButtonUL(&tft,50,35*i+30,60,30,2,TFT_WHITE,TFT_BLACK,btKEYERtext[i],2);
+    btKEYER[i].initButtonUL(&tft,100,35*i+30,60,30,2,TFT_WHITE,TFT_BLACK,btKEYERtext[i],2);
     btKEYER[i].drawButton();
-    btKEYER[i+4].initButtonUL(&tft,180,35*i+30,60,30,2,TFT_WHITE,TFT_BLACK,btKEYERtext[i+4],2);
+    btKEYER[i+4].initButtonUL(&tft,230,35*i+30,60,30,2,TFT_WHITE,TFT_BLACK,btKEYERtext[i+4],2);
     btKEYER[i+4].drawButton();
     }
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("6 - analog KEYER setting",0,0);
-  tft.drawString("DOT",0,45);
-    tft.drawNumber(conf.cwAdcDotFrom,120,45);
-    tft.drawNumber(conf.cwAdcDotTo,250,45);
-  tft.drawString("DASH",0,80);
-    tft.drawNumber(conf.cwAdcDashFrom,120,80);
-    tft.drawNumber(conf.cwAdcDashTo,250,80);
-  tft.drawString("BOTH",0,115);
-    tft.drawNumber(conf.cwAdcBothFrom,120,115);
-    tft.drawNumber(conf.cwAdcBothTo,250,115);
-  tft.drawString("ST",0,150);
-    tft.drawNumber(conf.cwAdcSTFrom,120,150);
-    tft.drawNumber(conf.cwAdcSTTo,250,150);
+  tft.drawString("6 - analog KEYER setting",50,0);
+  tft.drawString("DOT",50,45);
+    tft.drawNumber(conf.cwAdcDotFrom,170,45);
+    tft.drawNumber(conf.cwAdcDotTo,300,45);
+  tft.drawString("DASH",50,80);
+    tft.drawNumber(conf.cwAdcDashFrom,170,80);
+    tft.drawNumber(conf.cwAdcDashTo,300,80);
+  tft.drawString("BOTH",50,115);
+    tft.drawNumber(conf.cwAdcBothFrom,170,115);
+    tft.drawNumber(conf.cwAdcBothTo,300,115);
+  tft.drawString("ST",50,150);
+    tft.drawNumber(conf.cwAdcSTFrom,170,150);
+    tft.drawNumber(conf.cwAdcSTTo,300,150);
 }
 
 void displayMemMan()
 {
   for (byte i=0;i<5;i++)  if (btMemManact[i]==1)
     {
-    btMemMan[i].initButtonUL(&tft,0,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btMemMantext[i],2);
+    btMemMan[i].initButtonUL(&tft,50,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btMemMantext[i],2);
     btMemMan[i].drawButton();
     }
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("7 - Manage Memories",0,0);
+  tft.drawString("7 - Manage Memories",50,0);
 }
 
 void displayATU()
@@ -635,12 +849,12 @@ void displayATU()
     {
     if (i==0) backcolor=conf.ATUZM2enabled==1?TFT_YELLOW:TFT_WHITE;
     else backcolor=TFT_WHITE;
-    btATU[i].initButtonUL(&tft,0,35*i+30,160,30,2,backcolor,TFT_BLACK,btATUtext[i],2);
+    btATU[i].initButtonUL(&tft,50,35*i+30,160,30,2,backcolor,TFT_BLACK,btATUtext[i],2);
     btATU[i].drawButton();
     }
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("8 - ATU ZM-2",0,0);
-  tft.drawString(conf.ATUZM2enabled==1?"YES":"NO",180,40);
+  tft.drawString("8 - ATU ZM-2",50,0);
+  tft.drawString(conf.ATUZM2enabled==1?"YES":"NO",230,40);
 }
 
 void displayTPA2016()
@@ -653,43 +867,43 @@ void displayTPA2016()
     if (i==0) backcolor=conf.TPA2016enabled==1?TFT_YELLOW:TFT_WHITE;
     else if (i==1) backcolor=conf.TPA2016Compvalue>0?TFT_YELLOW:TFT_WHITE;
     else backcolor=TFT_WHITE;
-    btTPA[i].initButtonUL(&tft,0,35*i+30,160,30,2,backcolor,TFT_BLACK,btTPAtext[i],2);
+    btTPA[i].initButtonUL(&tft,50,35*i+30,160,30,2,backcolor,TFT_BLACK,btTPAtext[i],2);
     btTPA[i].drawButton();
     }
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("9 - TPA2016 Settings",0,0);
-  tft.drawString(conf.TPA2016enabled==1?"YES":"NO",180,40);
-  tft.drawString(comptext[conf.TPA2016Compvalue],180,75);
-  tft.drawNumber(conf.TPA2016Compmaxgain,180,110);
-  tft.drawNumber(conf.TPA2016Gain,180,145);
+  tft.drawString("9 - TPA2016 Settings",50,0);
+  tft.drawString(conf.TPA2016enabled==1?"YES":"NO",230,40);
+  tft.drawString(comptext[conf.TPA2016Compvalue],230,75);
+  tft.drawNumber(conf.TPA2016Compmaxgain,230,110);
+  tft.drawNumber(conf.TPA2016Gain,230,145);
 }
 
 void displayCONNS()
 {
   for (byte i=0;i<5;i++) if (btConact[i]==1)
     {
-    btCON[i].initButtonUL(&tft,0,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btContext[i],2);
+    btCON[i].initButtonUL(&tft,50,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btContext[i],2);
     btCON[i].drawButton();
     }
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("11 - Connections Settings",0,0);
-  tft.drawString(connmodetext[conf.connMode],180,40);
-  tft.drawString(serial2modetext[conf.serial2Mode],180,75);
+  tft.drawString("11 - Connections Settings",50,0);
+  tft.drawString(connmodetext[conf.connMode],230,40);
+  tft.drawString(serial2modetext[conf.serial2Mode],230,75);
 }
 
 void displayMenuTEMP()
 {
   for (byte i=0;i<5;i++) if (btTempact[i]==1)
     {
-    btTEMP[i].initButtonUL(&tft,0,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btTemptext[i],2);
+    btTEMP[i].initButtonUL(&tft,50,35*i+30,160,30,2,TFT_WHITE,TFT_BLACK,btTemptext[i],2);
     btTEMP[i].drawButton();
     }
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("12 - Temp. Settings",0,0);
+  tft.drawString("12 - Temp. Settings",50,0);
   tft.setTextSize(1);
   for (byte i=0;i<3;i++)
     for (byte j=0;j<8;j++)
-      tft.drawNumber(conf.probecode[conf.nprobe[i]][j],180+(15*j),40+(35*i));
+      tft.drawNumber(conf.probecode[conf.nprobe[i]][j],230+(15*j),40+(35*i));
   tft.setTextSize(2);
 }
 
@@ -703,16 +917,16 @@ void displayMenuPORTS()
     else if (i==2) backcolor=conf.wsenable==0?TFT_WHITE:TFT_YELLOW;
     else if (i==3) backcolor=conf.webenable==0?TFT_WHITE:TFT_YELLOW;
     else if (i==4) backcolor=conf.webenable==0?TFT_WHITE:TFT_YELLOW;
-    btPORTS[i].initButtonUL(&tft,0,35*i+30,160,30,2,backcolor,TFT_BLACK,btPortstext[i],2);
+    btPORTS[i].initButtonUL(&tft,50,35*i+30,160,30,2,backcolor,TFT_BLACK,btPortstext[i],2);
     btPORTS[i].drawButton();
     }
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString("13 - Ports Settings",0,0);
-  tft.drawNumber(conf.tcpPort,180,40);
-  tft.drawNumber(conf.udpPortSmeter,180,75);
-  tft.drawNumber(conf.wsPort,180,110);
-  tft.drawNumber(conf.webPort,180,145);
-  tft.drawNumber(conf.udpPortFreq,180,180);
+  tft.drawString("13 - Ports Settings",50,0);
+  tft.drawNumber(conf.tcpPort,230,40);
+  tft.drawNumber(conf.udpPortSmeter,230,75);
+  tft.drawNumber(conf.wsPort,230,110);
+  tft.drawNumber(conf.webPort,230,145);
+  tft.drawNumber(conf.udpPortFreq,230,180);
 }
 
 void displayMenuNav()
@@ -721,7 +935,7 @@ void displayMenuNav()
     {
     for (byte i=0;i<4;i++) if (btMenuNavact[(j*4)+i]==1)
       {
-      btMenuNav[(j*4)+i].initButtonUL(&tft,80*i,35*j,70,30,2,i+j==0?TFT_YELLOW:TFT_WHITE,TFT_BLACK,btMenuNavtext[(j*4)+i],2);
+      btMenuNav[(j*4)+i].initButtonUL(&tft,50+80*i,45*j,70,40,2,i+j==0?TFT_YELLOW:TFT_WHITE,TFT_BLACK,btMenuNavtext[(j*4)+i],2);
       btMenuNav[(j*4)+i].drawButton();
       }
     }
@@ -742,17 +956,17 @@ void updateDisplay(byte alldata) {
       displayStatus();  // time, status
       if (conf.framemode==0)      // analog meters
         {
-        if (inTx==0) displaySmeter(smeterx,smetery,smetertam,1);
-        displayIFS(0,ifsx,ifsy);
-        displayATT(0,attx,atty);
+        if (inTx==0) displaySmeter(1);
+        displayIFS(0);
+        displayATT(0);
         displayWiFiSt();
         displayRstBt();
         }
       else if (conf.framemode==1)   // digital meters
         {
         if (inTx==0) displaybarSmeter(40,186,0,90,69);
-        displayIFS(1,ifsx,ifsy);
-        displayATT(1,attx,atty);
+        displayIFS(1);
+        displayATT(1);
         displayWiFiSt();
         displayRstBt();
         }
@@ -816,7 +1030,7 @@ void displayYN(byte en0, byte en1, byte en2)
   for (byte i=0;i<3;i++)
     if (btYNact[i]==1)
       {
-      btYN[i].initButtonUL(&tft,100*i+5,205,90,30,2,TFT_WHITE,TFT_BLACK,btYNtext[i],2);
+      btYN[i].initButtonUL(&tft,100*i+170,260,90,40,2,TFT_WHITE,TFT_BLACK,btYNtext[i],2);
       btYN[i].drawButton();
       }
 }
@@ -826,19 +1040,19 @@ void displayKey(byte mode) // 0: all keys UP, 1: all keys LW, 2:alfa only UP, 3:
   if ((mode<=1) || (mode==4))
     for (byte i=0;i<10;i++)
       {
-      btKey[i].initButtonUL(&tft,31*(i%10),35+(31*int(i/10)),30,30,2,TFT_WHITE,TFT_BLACK,btKeytextU[i],2);
+      btKey[i].initButtonUL(&tft,41*(i%10),45+(41*int(i/10)),40,40,2,TFT_WHITE,TFT_BLACK,btKeytextU[i],2);
       btKey[i].drawButton();
       }
   if ((mode==0) || (mode==2))
     for (byte i=10;i<50;i++)
       {
-      btKey[i].initButtonUL(&tft,31*(i%10),35+(31*int(i/10)),30,30,2,TFT_WHITE,TFT_BLACK,btKeytextU[i],2);
+      btKey[i].initButtonUL(&tft,41*(i%10),45+(41*int(i/10)),40,40,2,TFT_WHITE,TFT_BLACK,btKeytextU[i],2);
       btKey[i].drawButton();
       }
   if ((mode==1) || (mode==2))
     for (byte i=10;i<50;i++)
       {
-      btKey[i].initButtonUL(&tft,31*(i%10),35+(31*int(i/10)),30,30,2,TFT_WHITE,TFT_BLACK,btKeytextL[i],2);
+      btKey[i].initButtonUL(&tft,41*(i%10),45+(41*int(i/10)),40,40,2,TFT_WHITE,TFT_BLACK,btKeytextL[i],2);
       btKey[i].drawButton();
       }
   displayYN(1,1,1);
@@ -1101,20 +1315,20 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
   TFT_eSPI_Button btaux;          // buttons aux
   clearTFT();
   tft.setTextSize(3); tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString(Title,5,20);
+  tft.drawString(Title,55,20);
   displayYN(1,1,0);
   tft.setTextSize(3);  tft.setTextColor(TFT_WHITE, TFT_BLACK);
   if ((valueType!=0) && (valueType!=5) && (valueType!=19))
     {
-    btaux.initButtonUL(&tft,215,5,100,40,2,TFT_BLACK,TFT_WHITE,itoa(targetValue,buff,10),3);
+    btaux.initButtonUL(&tft,265,5,100,40,2,TFT_BLACK,TFT_WHITE,itoa(targetValue,buff,10),3);
     btaux.drawButton();
     }
   if (valueType==2)      // IFS
     { 
-    displayIFS(1,ifsx,ifsy); 
+    displayIFS(1); 
     if (conf.framemode==0) 
       {
-      displaySmeter(smeterx,smetery,smetertam,1);
+      displaySmeter(1);
       }
     else if (conf.framemode==1) displaybarSmeter(40,166,0,90,87); 
     else if (conf.framemode==2) displaySpectrum();
@@ -1122,20 +1336,20 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
     }
   else if ((valueType==3) || (valueType==4))       // ajustar C1/C2
     {
-    displaygauge(3,targetValue,160,190,140,1,minValue,maxValue,180,12);
+    displaygauge(3,targetValue,1,minValue,maxValue,180,12);
     displayneedle(targetValue,160,190,140,minValue,maxValue,180);
     }
   else if (valueType==5)        // squelch
     {
-    displaygauge(5,targetValue,160,190,140,1,minValue,maxValue,180,15);
+    displaygauge(5,targetValue,1,minValue,maxValue,180,15);
     displayneedle(targetValue,160,190,140,minValue,maxValue,180);
     }
   else if (valueType==6)      // ATT
     { 
-    displayATT(1,attx,atty); 
+    displayATT(1); 
     if (conf.framemode==0) 
       {
-      displaySmeter(smeterx,smetery,smetertam,1);
+      displaySmeter(1);
       }
     else if (conf.framemode==1) 
       {   
@@ -1182,7 +1396,7 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
       if (valueType==2)   // IFS
         {
         conf.ifShiftValue=targetValue; isIFShift=conf.ifShiftValue==0?0:1;
-        displayIFS(1,ifsx,ifsy);
+        displayIFS(1);
         setFrequency(conf.frequency);
         SetCarrierFreq();
         if (conf.framemode==3) displayFreqs();
@@ -1205,7 +1419,7 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
       if (valueType==6)   // ATT
         {
         conf.attLevel=targetValue;
-        displayATT(1,attx,atty);
+        displayATT(1);
         setFrequency(conf.frequency);
         SetCarrierFreq();
         if (conf.framemode==3) displayFreqs();
@@ -1223,11 +1437,11 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
       {
       if (conf.framemode==0) 
         {
-        displaySmeter(smeterx,smetery,smetertam,1);
+        displaySmeter(1);
         }
       else if (conf.framemode==1) 
         {
-        displaySmeter(smeterx,smetery,smetertam,1);
+        displaySmeter(1);
         }
       else if (conf.framemode==3) 
         {   
@@ -1238,11 +1452,11 @@ uint32_t getValByKnob(int valueType, int targetValue, int minValue, int maxValue
       {
       if (conf.framemode==0) 
         {
-        displaySmeter(smeterx,smetery,smetertam,1);
+        displaySmeter(1);
         }
       else if (conf.framemode==1) 
         {
-        displaySmeter(smeterx,smetery,smetertam,1);
+        displaySmeter(1);
         }
       else if (conf.framemode==3) 
         {
@@ -1286,7 +1500,7 @@ void checkSmeterButtons(uint16_t x, uint16_t y)
       if (i==0)
         {
         conf.scanmode=conf.scanmode<2?conf.scanmode+1:0;
-        displaySmeter(smeterx,smetery,smetertam,0);
+        displaySmeter(0);
         }
       else if (i==1)
         {
@@ -1298,7 +1512,7 @@ void checkSmeterButtons(uint16_t x, uint16_t y)
     }
 }
 
-void setUSB(byte value) 
+void setUSB_ubitx(byte value) 
   {
   if (value == conf.isUSB)  return;
   conf.isUSB = value; 
@@ -1309,6 +1523,28 @@ void setUSB(byte value)
   displayMain(); 
   setFrequency(conf.frequency);
   displayFreq(1,1,1,1); 
+}
+
+void setUSB_faradio(byte value) 
+  {
+  if (value == conf.isUSB)  return;
+  conf.isUSB = value; 
+  if (conf.vfoActive==VFO_A) conf.isUSBA=conf.isUSB; else conf.isUSBB=conf.isUSB;
+  sendwsData(tcp_is_USB); 
+  btMainact[4]=conf.isUSB==1?1:0; 
+  strcpy(btMaintext[4],conf.isUSB==1?"USB":"LSB"); 
+  displayMain(); 
+  setFrequency(conf.frequency);
+  displayFreq(1,1,1,1); 
+}
+
+void setUSB(byte value) {
+#ifdef UBITX_RADIO
+  setUSB_ubitx(value);
+#endif
+#ifdef FA_RADIO
+  setUSB_faradio(value);
+#endif
 }
 
 void saveFREQ()     // save freq values
@@ -1875,14 +2111,14 @@ void displayMsg(char* msg1,char* msg2,char* msg3,int x,int y,int w, int h)
 void displaySWR(byte tam)
 {
   if (tam==0)
-    displaygauge(2,SWR,190,210,50,1,1,10,90,9);
+    displaygauge(2,SWR,1,1,10,90,9);
   else
-    displaygauge(2,SWR,160,190,110,1,1,10,180,9);
+    displaygauge(2,SWR,1,1,10,180,9);
 }
 
 void displayFrame()
 {
-  if (conf.framemode==0) displaySmeter(smeterx,smetery,smetertam,1);
+  if (conf.framemode==0) displaySmeter(1);
   else if (conf.framemode==1) 
       {   
       displaybarSmeter(40,186,0,90,69);

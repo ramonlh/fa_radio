@@ -10,7 +10,8 @@
 
 //#define PANTALLA28P          // 
 #define PANTALLA40P          //
-
+//#define UBITX_RADIO
+#define FA_RADIO
 
 #define FIRMWARE_VERSION_INFO F("0.1")
 
@@ -43,6 +44,7 @@
 #include "html_f.h"
 #include "ws_server.h"
 #include "net_serv.h"
+#include "mux_mcp23017.h"
 #include "radio.h"
 
 #include "wifi_f.h"
@@ -55,16 +57,11 @@ void setup()
                                 s2("Serial 2 OK\n"); 
   Init_Cat(38400, SERIAL_8N1);  s2("Serial 1 OK\n");
   init_EEprom();                s2("EEPROM OK\n");
+  initConf();   // se asignan valores iniciales por si falla la lectura
+
   initTFT();                    s2("TFT OK\n");
   s2("Version:"); s2(FIRMWARE_VERSION_INFO); s2("\n");
-  s2("SPIFFS\n");
-  if (initSPIFSS (true, false)==0) {   // par1: test  ficheros   par2: formatear
-    s2("  OK\n");
-    }
-  else {
-    s2("  ERROR\n");
-    }
-  initConf();   // se asignan valores iniciales por si falla la lectura
+  initFFat (true, true);
   s2("CONF\n");
   int err = readconf();
   if (err == 0)
@@ -74,7 +71,7 @@ void setup()
   else if (err == 3)
     s2("  Error al abrir /ubitx.cnf\n");
   else if (err == 4)
-    s2("  Error tamaño fichero /ubitx.cnf\n");
+    s2("  Error tamano fichero /ubitx.cnf\n");
 
   Wire.begin(SDA,SCL);      s2("I2C OK\n");
   //showSettings();
@@ -93,7 +90,7 @@ void setup()
   smetervalue=0;  maxsmeter=0;  minsmeter=32000;
   byte auxconnMode=conf.connMode;
   conf.connMode=auxconnMode;
-
+  s2("MCP23017 "); s2(init_MCP23017()==0?"OK\n":"ERROR\n");
   xTaskCreate(task_ds18b20, "Task DS18B20", task_ds18b20_size, NULL, task_ds18b20_priority, NULL);
   xTaskCreate(task_ads1115, "Task ADS1115", task_ads1115_size, NULL, task_ads1115_priority, NULL);
 
@@ -124,7 +121,7 @@ void task01()
   if ((inTx==0) && (tftpage==0) && (conf.framemode<=1))
     {
     if (conf.framemode==0)  {
-      displaySmeter(smeterx,smetery,smetertam,1);
+      displaySmeter(1);
       }
     else if (conf.framemode==1) {
       displaybarSmeter(40,186,0,90,69);
@@ -167,6 +164,7 @@ void task1()
 
 void task10()
 {
+
   tini=millis();
   sendTemperatureData();  
   timetask10 = millis();
@@ -186,7 +184,9 @@ void loopaux()
   
   if (isCWAutoMode==0)    //when CW AutoKey Mode, disable this process
     {
-    if ((!txCAT) && (!txTFT)) { checkPTT(); }  
+    if ((!txCAT) && (!txTFT)) { 
+      checkPTT(); 
+      }  
     handletfttouch();     // este proceso dura unos 11 ms
     }
   if (conf.cwMode!=0) 

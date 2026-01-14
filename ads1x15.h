@@ -65,6 +65,13 @@ void task_ads1115(void *pvParameters) {
           ajustarsmeter(smeteradc);
           // read CW     ¡Sólo si en modo CW!
           cwcodevalue = adsB.readADC_SingleEnded(3); 
+          vFORc = adsB.readADC_SingleEnded(VFORp); 
+          vREFc = adsB.readADC_SingleEnded(VREFp); 
+          float auxSWR = abs(vREFc)/abs(vFORc);
+          SWR = (1 + auxSWR) / abs(1 - auxSWR);
+          //Serial2.print("FOR:"); Serial2.print(vFORc);
+          //Serial2.print("  REF:"); Serial2.print(vREFc);
+          //Serial2.print("  SWR:"); Serial2.println(SWR);
           }
         else {
           // read SWR ¡Sólo en modo TX!
